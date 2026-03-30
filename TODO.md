@@ -1,3 +1,4 @@
+- [ ] All dependencies must be installed as the latest version without conflicts. This means avoiding editing package.json and instead directly bun add the dependency.
 - [ ] foundation-and-hub-core
 - [ ] worker-sdk-and-trust
 - [ ] plugins-and-dashboards

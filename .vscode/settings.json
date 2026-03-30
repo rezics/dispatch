@@ -1,9 +1,14 @@
 {
     "cSpell.words": [
+        "dotenv",
         "elysia",
         "elysiajs",
+        "eslintcache",
+        "nuxt",
         "openspec",
+        "pids",
         "reflog",
-        "shortlog"
+        "shortlog",
+        "stylelintcache"
     ]
 }

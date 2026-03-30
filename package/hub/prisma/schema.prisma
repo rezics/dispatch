@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator prismabox {
+  provider                   = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                 = true
+  output                     = "../src/generated/prismabox"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id            String   @id
+  trustLevel    String   @default("receipted")
+  receiptSecret String?
+  jwksUri       String?
+  createdAt     DateTime @default(now())
+
+  workers       Worker[]
+  tasks         Task[]
+  /// @prismabox.hide
+  usedNonces    UsedNonce[]
+  /// @prismabox.hide
+  resultPlugins ResultPlugin[]
+}
+
+model Worker {
+  id           String   @id
+  project      String
+  capabilities String[]
+  concurrency  Int      @default(10)
+  mode         String
+  metadata     Json?
+  connectedAt  DateTime @default(now())
+  lastSeen     DateTime @default(now())
+
+  projectRef   Project  @relation(fields: [project], references: [id])
+  tasks        Task[]
+
+  @@index([project])
+}
+
+model Task {
+  id             String    @id @default(uuid())
+  project        String
+  type           String
+  payload        Json
+  priority       Int       @default(5)
+  status         String    @default("pending")
+  workerId       String?
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  scheduledAt    DateTime  @default(now())
+  startedAt      DateTime?
+  leaseExpiresAt DateTime?
+  finishedAt     DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+
+  projectRef     Project   @relation(fields: [project], references: [id])
+  workerRef      Worker?   @relation(fields: [workerId], references: [id])
+  result         TaskResult?
+
+  @@index([project, status, priority(sort: Desc), scheduledAt(sort: Asc)])
+  @@index([status, leaseExpiresAt])
+}
+
+model TaskResult {
+  taskId    String   @id
+  data      Json
+  createdAt DateTime @default(now())
+
+  task      Task     @relation(fields: [taskId], references: [id])
+}
+
+/// @prismabox.hide
+model UsedNonce {
+  nonce     String
+  project   String
+  expiresAt DateTime
+
+  projectRef Project @relation(fields: [project], references: [id])
+
+  @@id([nonce, project])
+  @@index([expiresAt])
+}
+
+/// @prismabox.hide
+model ResultPlugin {
+  id      String
+  project String
+  config  Json
+  enabled Boolean @default(true)
+
+  projectRef Project @relation(fields: [project], references: [id])
+
+  @@id([id, project])
+}
