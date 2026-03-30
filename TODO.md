@@ -1,0 +1,5 @@
+- [ ] foundation-and-hub-core
+- [ ] worker-sdk-and-trust
+- [ ] plugins-and-dashboards
+- [ ] desktop-app-and-hardening 
+- [ ] github action should only be triggered by the master branch.
