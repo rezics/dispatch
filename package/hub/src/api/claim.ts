@@ -5,11 +5,14 @@ import { renewLease } from '../queue/renew'
 import { completeTasks } from '../queue/complete'
 import { authMiddleware, type AuthProvider } from '../auth/middleware'
 import type { WorkerClaims } from '../auth/jwt'
+import { enforceReceipt } from '../notary/trust'
+import { ReceiptError } from '../notary/receipt'
+import type { ResultPluginRunner } from '../plugin/runner'
 
 // Re-export for convenience
 export { type AuthProvider } from '../auth/middleware'
 
-export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
+export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], resultPluginRunner?: ResultPluginRunner) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
     .use(authMiddleware(authProviders))
     .post(
@@ -70,11 +73,68 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
     )
     .post(
       '/complete',
-      async ({ body, set }) => {
+      async ({ body, workerClaims, set }) => {
         try {
-          await completeTasks(db, body.done ?? [], body.failed ?? [])
+          const doneItems = body.done ?? []
+          const failedItems = body.failed ?? []
+
+          // If there are done items, check trust level and enforce receipt
+          if (doneItems.length > 0) {
+            const taskIds = [...doneItems.map((d) => d.id), ...failedItems.map((f) => f.id)]
+
+            // Get the project from the first task to look up trust level
+            const firstTask = await db.task.findFirst({
+              where: { id: { in: taskIds } },
+              select: { project: true },
+            })
+
+            if (firstTask) {
+              const project = await db.project.findUnique({
+                where: { id: firstTask.project },
+              })
+
+              if (project) {
+                await enforceReceipt(
+                  db,
+                  project,
+                  body.receipt as any,
+                  doneItems.map((d) => d.id),
+                  workerClaims.sub,
+                )
+              }
+            }
+          }
+
+          await completeTasks(db, doneItems, failedItems)
+
+          // Route done tasks through result plugin runner
+          if (resultPluginRunner) {
+            for (const item of doneItems) {
+              const task = await db.task.findUnique({
+                where: { id: item.id },
+                select: { id: true, project: true, type: true },
+              })
+              if (task) {
+                try {
+                  await resultPluginRunner.run(task, item.result as any)
+                } catch (err) {
+                  // Result plugin failure does not block completion
+                  console.error(`[result-plugin] Error for task ${item.id}:`, err)
+                }
+              }
+            }
+          }
+
           return { ok: true }
         } catch (err) {
+          if (err instanceof ReceiptError) {
+            set.status = err.status
+            return { error: err.message }
+          }
+          if (err && typeof err === 'object' && 'status' in err && (err as any).status === 409) {
+            set.status = 409
+            return { error: (err as Error).message }
+          }
           set.status = 400
           return { error: (err as Error).message }
         }
@@ -104,10 +164,21 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
               }),
             ),
           ),
+          receipt: t.Optional(
+            t.Object({
+              taskIds: t.Array(t.String()),
+              workerId: t.String(),
+              project: t.String(),
+              issuedAt: t.Number(),
+              expiresAt: t.Number(),
+              nonce: t.String(),
+              signature: t.String(),
+            }),
+          ),
         }),
         detail: {
           summary: 'Complete tasks',
-          description: 'Submit task completion results (done and/or failed)',
+          description: 'Submit task completion results (done and/or failed). For receipted projects, include a signed CompletionReceipt.',
           security: [{ Bearer: [] }],
         },
       },

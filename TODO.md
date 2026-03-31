@@ -1,6 +1,6 @@
-- [ ] All dependencies must be installed as the latest version without conflicts. This means avoiding editing package.json and instead directly bun add the dependency.
-- [ ] foundation-and-hub-core
-- [ ] worker-sdk-and-trust
+- [x] All dependencies must be installed as the latest version without conflicts. This means avoiding editing package.json and instead directly bun add the dependency.
+- [x] foundation-and-hub-core
+- [x] worker-sdk-and-trust
 - [ ] plugins-and-dashboards
 - [ ] desktop-app-and-hardening 
 - [ ] github action should only be triggered by the master branch.

@@ -9,10 +9,16 @@ import { tasksRoutes } from './api/tasks'
 import { claimRoutes } from './api/claim'
 import { workersRoutes } from './api/workers'
 import { projectsRoutes } from './api/projects'
+import { auditRoutes } from './api/audit'
 import { startReaper } from './reaper/reaper'
 import type { AuthProvider } from './auth/jwt'
+import { WsManager } from './ws/manager'
+import { wsRoute } from './ws/route'
+import { ResultPluginRunner } from './plugin/runner'
 
 const authProviders: AuthProvider[] = []
+const wsManager = new WsManager(db)
+const resultPluginRunner = new ResultPluginRunner(db)
 
 // Add auth providers from environment if configured
 // For now, providers are empty — workers can't authenticate until IdP is configured
@@ -46,10 +52,12 @@ const app = new Elysia()
   .use(cors({ origin: env.NODE_ENV === 'development' ? true : undefined }))
   .use(serverTiming({ enabled: env.NODE_ENV === 'development' }))
   .use(models)
-  .use(tasksRoutes(db))
-  .use(claimRoutes(db, authProviders))
+  .use(tasksRoutes(db, wsManager))
+  .use(claimRoutes(db, authProviders, resultPluginRunner))
   .use(workersRoutes(db))
   .use(projectsRoutes(db))
+  .use(auditRoutes(db))
+  .use(wsRoute(db, authProviders, wsManager))
   .listen(env.PORT)
 
 // Start the reaper loop
@@ -63,4 +71,4 @@ process.on('SIGINT', () => {
   process.exit(0)
 })
 
-export { app }
+export { app, wsManager }

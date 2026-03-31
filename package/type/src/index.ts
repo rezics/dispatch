@@ -9,3 +9,4 @@ export type {
 export { definePlugin } from './plugin'
 export type { WorkerMessage, HubMessage } from './message'
 export type { CompletionReceipt } from './receipt'
+export { signReceipt } from './receipt'

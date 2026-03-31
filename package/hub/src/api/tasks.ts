@@ -1,8 +1,9 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '@prisma/client'
 import { createTask } from '../queue/create'
+import type { WsManager } from '../ws/manager'
 
-export const tasksRoutes = (db: PrismaClient) =>
+export const tasksRoutes = (db: PrismaClient, wsManager?: WsManager) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
     .post(
       '',
@@ -64,13 +65,20 @@ export const tasksRoutes = (db: PrismaClient) =>
           set.status = 404
           return { error: 'Task not found' }
         }
+
+        // Include progress data if available from WS manager
+        const progress = wsManager?.getProgress(params.id)
+        if (progress) {
+          return { ...task, progress }
+        }
+
         return task
       },
       {
         params: t.Object({ id: t.String() }),
         detail: {
           summary: 'Get task by ID',
-          description: 'Retrieve a single task by its ID',
+          description: 'Retrieve a single task by its ID, including progress data when available',
         },
       },
     )
