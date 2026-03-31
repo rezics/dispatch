@@ -37,6 +37,10 @@ export class PluginRegistry {
     this.plugins.push({ plugin, config })
   }
 
+  getPlugins(): DispatchPlugin<any>[] {
+    return this.plugins.map((p) => p.plugin)
+  }
+
   getCapabilities(): string[] {
     return Array.from(this.capabilityMap.keys())
   }

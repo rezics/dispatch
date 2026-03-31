@@ -4,12 +4,14 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
+    "prebuild": "cd ../hub-dashboard && bun run build && cp -r dist ../hub/dashboard-dist",
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts"
   },
   "dependencies": {
     "@elysiajs/bearer": "1.4.3",
     "@elysiajs/cors": "1.4.1",
+    "@elysiajs/static": "^1.4.0",
     "@elysiajs/openapi": "1.4.14",
     "@elysiajs/server-timing": "1.4.0",
     "@prisma/adapter-pg": "7.6.0",

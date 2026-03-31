@@ -15,6 +15,7 @@ import type { AuthProvider } from './auth/jwt'
 import { WsManager } from './ws/manager'
 import { wsRoute } from './ws/route'
 import { ResultPluginRunner } from './plugin/runner'
+import { dashboardRoute } from './dashboard'
 
 const authProviders: AuthProvider[] = []
 const wsManager = new WsManager(db)
@@ -58,6 +59,7 @@ const app = new Elysia()
   .use(projectsRoutes(db))
   .use(auditRoutes(db))
   .use(wsRoute(db, authProviders, wsManager))
+  .use(dashboardRoute(env.DISPATCH_DISABLE_DASHBOARD))
   .listen(env.PORT)
 
 // Start the reaper loop
@@ -65,6 +67,9 @@ const stopReaper = startReaper(db, env.REAPER_INTERVAL)
 
 console.log(`Dispatch Hub running on http://localhost:${env.PORT}`)
 console.log(`OpenAPI docs at http://localhost:${env.PORT}/openapi`)
+if (!env.DISPATCH_DISABLE_DASHBOARD) {
+  console.log(`Dashboard at http://localhost:${env.PORT}/_dashboard`)
+}
 
 process.on('SIGINT', () => {
   stopReaper()
