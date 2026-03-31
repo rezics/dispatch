@@ -4,3 +4,4 @@
 - [ ] plugins-and-dashboards
 - [ ] desktop-app-and-hardening 
 - [ ] github action should only be triggered by the master branch.
+- [ ] should move test package into package folder?
