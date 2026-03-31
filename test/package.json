@@ -1,0 +1,12 @@
+{
+  "name": "@rezics/dispatch-test",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@types/bun": "latest"
+  }
+}
