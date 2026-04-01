@@ -1,7 +1,8 @@
 - [x] All dependencies must be installed as the latest version without conflicts. This means avoiding editing package.json and instead directly bun add the dependency.
 - [x] foundation-and-hub-core
 - [x] worker-sdk-and-trust
-- [ ] plugins-and-dashboards
+- [x] plugins-and-dashboards
 - [ ] desktop-app-and-hardening 
 - [ ] github action should only be triggered by the master branch.
-- [ ] should move test package into package folder?
+- [ ] desktop-app-and-hardening need to think twice, we also need browser plugin version, with more function
+- [ ] Or perhaps desktop applications shouldn't exist at all? Should we provide an npm package for any kind of worker to consume, instead of building highly complex desktop applications?
