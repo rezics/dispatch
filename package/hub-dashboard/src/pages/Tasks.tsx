@@ -77,9 +77,9 @@ export function Tasks() {
           <div><strong>{LL.common.labels.type()}:</strong> {selectedTask.type}</div>
           <div><strong>{LL.common.labels.status()}:</strong> {statusLabel(selectedTask.status)}</div>
           <div><strong>{LL.common.labels.priority()}:</strong> {selectedTask.priority}</div>
-          <div><strong>{LL.common.labels.created()}:</strong> {selectedTask.createdAt}</div>
-          {selectedTask.startedAt && <div><strong>{LL.common.labels.started()}:</strong> {selectedTask.startedAt}</div>}
-          {selectedTask.finishedAt && <div><strong>{LL.common.labels.finished()}:</strong> {selectedTask.finishedAt}</div>}
+          <div><strong>{LL.common.labels.created()}:</strong> {String(selectedTask.createdAt)}</div>
+          {selectedTask.startedAt && <div><strong>{LL.common.labels.started()}:</strong> {String(selectedTask.startedAt)}</div>}
+          {selectedTask.finishedAt && <div><strong>{LL.common.labels.finished()}:</strong> {String(selectedTask.finishedAt)}</div>}
           {selectedTask.workerId && <div><strong>{LL.common.labels.worker()}:</strong> {selectedTask.workerId}</div>}
           {selectedTask.error && (
             <div style={{ marginTop: '12px' }}>
@@ -146,8 +146,8 @@ export function Tasks() {
             priority={task.priority}
             progress={task.progress}
             createdAt={String(task.createdAt)}
-            startedAt={task.startedAt}
-            finishedAt={task.finishedAt}
+            startedAt={task.startedAt ? String(task.startedAt) : task.startedAt}
+            finishedAt={task.finishedAt ? String(task.finishedAt) : task.finishedAt}
             workerId={task.workerId}
             error={task.error}
             onClick={() => setSelectedTask(task)}
