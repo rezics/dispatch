@@ -1,5 +1,8 @@
 {
   "name": "@rezics/dispatch",
   "private": true,
-  "workspaces": ["package/*"]
+  "workspaces": ["package/*"],
+  "scripts": {
+    "dev": "cd tool && bun run dev-script/dev.ts"
+  }
 }

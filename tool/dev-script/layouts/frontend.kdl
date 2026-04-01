@@ -1,0 +1,11 @@
+tab name="hub-dashboard" {
+    pane command="bun" cwd="../../../package/hub-dashboard" start_suspended=false {
+        args "dev"
+    }
+}
+
+tab name="worker-dashboard" {
+    pane command="bun" cwd="../../../package/worker-dashboard" start_suspended=false {
+        args "dev"
+    }
+}

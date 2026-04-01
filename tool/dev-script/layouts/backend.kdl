@@ -1,0 +1,5 @@
+tab name="hub" focus=true {
+    pane command="bun" cwd="../../../package/hub" start_suspended=false {
+        args "dev"
+    }
+}
