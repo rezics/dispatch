@@ -3,6 +3,9 @@
   "private": true,
   "workspaces": ["package/*"],
   "scripts": {
-    "dev": "cd tool && bun run dev-script/dev.ts"
+    "dev": "cd tool && bun run dev-script/dev.ts",
+    "docs:dev": "cd package/docs && bun run dev",
+    "docs:build": "cd package/docs && bun run build",
+    "docs:preview": "cd package/docs && bun run preview"
   }
 }

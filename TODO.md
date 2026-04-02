@@ -6,3 +6,4 @@
 - [ ] github action should only be triggered by the master branch.
 - [ ] desktop-app-and-hardening need to think twice, we also need browser plugin version, with more function
 - [ ] Or perhaps desktop applications shouldn't exist at all? Should we provide an npm package for any kind of worker to consume, instead of building highly complex desktop applications?
+- [ ] prisma: change task type to task tag for a more flexible design
