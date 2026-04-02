@@ -1,6 +1,5 @@
 {
-  "name": "@rezics/dispatch-docs",
-  "version": "0.1.0",
+  "name": "dispatch-docs",
   "private": true,
   "type": "module",
   "scripts": {
