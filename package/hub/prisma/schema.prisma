@@ -104,10 +104,11 @@ model ResultPlugin {
 }
 
 model User {
-  id        String   @id
-  isRoot    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  createdBy String?
+  id           String   @id
+  isRoot       Boolean  @default(false)
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  createdBy    String?
 
   sessions  Session[]
 }

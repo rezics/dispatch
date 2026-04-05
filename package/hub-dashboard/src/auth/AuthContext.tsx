@@ -8,7 +8,8 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (token: string) => Promise<void>
+  loginWithPassword: (username: string, password: string) => Promise<void>
+  loginWithToken: (token: string) => Promise<void>
   logout: () => Promise<void>
   hasPermission: (permission: string) => boolean
 }
@@ -53,7 +54,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = useCallback(async (jwtToken: string) => {
+  async function handleLoginResponse(res: Response) {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'Login failed' }))
+      throw new Error(body.error ?? 'Login failed')
+    }
+    await checkSession()
+  }
+
+  const loginWithPassword = useCallback(async (username: string, password: string) => {
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include',
+    })
+    await handleLoginResponse(res)
+  }, [])
+
+  const loginWithToken = useCallback(async (jwtToken: string) => {
     const res = await fetch('/auth/login', {
       method: 'POST',
       headers: {
@@ -62,13 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       credentials: 'include',
     })
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({ error: 'Login failed' }))
-      throw new Error(body.error ?? 'Login failed')
-    }
-
-    await checkSession()
+    await handleLoginResponse(res)
   }, [])
 
   const logout = useCallback(async () => {
@@ -92,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ ...state, loginWithPassword, loginWithToken, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   )

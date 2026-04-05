@@ -50,28 +50,13 @@ export const authMiddleware = (providers: AuthProvider[], db: PrismaClient) =>
           })
 
           if (session && session.expiresAt > new Date()) {
-            const identity: ResolvedIdentity = session.user.isRoot
-              ? {
-                  sub: session.user.id,
-                  isRoot: true,
-                  permissions: ['*'],
-                  projects: '*',
-                  claims: { sub: session.user.id },
-                }
-              : {
-                  sub: session.user.id,
-                  isRoot: false,
-                  permissions: [],
-                  projects: [],
-                  claims: { sub: session.user.id },
-                }
-
-            // For non-root session users, resolve permissions from policies
-            if (!session.user.isRoot) {
-              const resolved = await resolveIdentity({ sub: session.user.id }, db)
-              return { identity: resolved }
+            const identity: ResolvedIdentity = {
+              sub: session.user.id,
+              isRoot: session.user.isRoot,
+              permissions: session.user.isRoot ? ['*'] : [],
+              projects: session.user.isRoot ? '*' : [],
+              claims: { sub: session.user.id },
             }
-
             return { identity }
           }
         }

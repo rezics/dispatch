@@ -8,6 +8,7 @@ export const UserPlain = t.Object(
   {
     id: t.String(),
     isRoot: t.Boolean(),
+    passwordHash: __nullable__(t.String()),
     createdAt: t.Date(),
     createdBy: __nullable__(t.String()),
   },
@@ -36,6 +37,7 @@ export const UserRelations = t.Object(
 export const UserPlainInputCreate = t.Object(
   {
     isRoot: t.Optional(t.Boolean()),
+    passwordHash: t.Optional(__nullable__(t.String())),
     createdBy: t.Optional(__nullable__(t.String())),
   },
   { additionalProperties: false },
@@ -44,6 +46,7 @@ export const UserPlainInputCreate = t.Object(
 export const UserPlainInputUpdate = t.Object(
   {
     isRoot: t.Optional(t.Boolean()),
+    passwordHash: t.Optional(__nullable__(t.String())),
     createdBy: t.Optional(__nullable__(t.String())),
   },
   { additionalProperties: false },
@@ -114,6 +117,7 @@ export const UserWhere = t.Partial(
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
           isRoot: t.Boolean(),
+          passwordHash: t.String(),
           createdAt: t.Date(),
           createdBy: t.String(),
         },
@@ -153,6 +157,7 @@ export const UserWhereUnique = t.Recursive(
             {
               id: t.String(),
               isRoot: t.Boolean(),
+              passwordHash: t.String(),
               createdAt: t.Date(),
               createdBy: t.String(),
             },
@@ -170,6 +175,7 @@ export const UserSelect = t.Partial(
     {
       id: t.Boolean(),
       isRoot: t.Boolean(),
+      passwordHash: t.Boolean(),
       createdAt: t.Boolean(),
       createdBy: t.Boolean(),
       sessions: t.Boolean(),
@@ -193,6 +199,9 @@ export const UserOrderBy = t.Partial(
         additionalProperties: false,
       }),
       isRoot: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      passwordHash: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {

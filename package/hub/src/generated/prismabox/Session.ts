@@ -21,6 +21,7 @@ export const SessionRelations = t.Object(
       {
         id: t.String(),
         isRoot: t.Boolean(),
+        passwordHash: __nullable__(t.String()),
         createdAt: t.Date(),
         createdBy: __nullable__(t.String()),
       },
