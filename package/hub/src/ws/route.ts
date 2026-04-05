@@ -1,13 +1,14 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '@prisma/client'
 import type { WorkerMessage } from '@rezics/dispatch-type'
-import { verifyWorkerToken, type AuthProvider, type WorkerClaims } from '../auth/jwt'
+import { verifyWorkerToken, type AuthProvider } from '../auth/jwt'
+import { resolveIdentity } from '../auth/resolve'
+import { hasPermission, type ResolvedIdentity, PERMISSIONS } from '../auth/permissions'
 import { WsManager } from './manager'
 
 export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManager: WsManager) =>
   new Elysia({ tags: ['Workers'] }).ws('/workers', {
     async open(ws) {
-      // Auth is handled in the upgrade via headers
       const token = ws.data.query?.token as string | undefined
       if (!token) {
         ws.close(4001, 'Missing auth token')
@@ -16,8 +17,15 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
 
       try {
         const claims = await verifyWorkerToken(token, authProviders)
-        ;(ws as any)._claims = claims
-        ;(ws as any)._workerId = claims.sub
+        const identity = await resolveIdentity(claims as unknown as Record<string, unknown>, db)
+
+        if (!hasPermission(identity, PERMISSIONS.WORKER_REGISTER)) {
+          ws.close(4003, 'Missing worker:register permission')
+          return
+        }
+
+        ;(ws as any)._identity = identity
+        ;(ws as any)._workerId = identity.sub
       } catch {
         ws.close(4001, 'Invalid auth token')
       }
@@ -25,8 +33,8 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
 
     async message(ws, data) {
       const workerId = (ws as any)._workerId as string | undefined
-      const claims = (ws as any)._claims as WorkerClaims | undefined
-      if (!workerId || !claims) {
+      const identity = (ws as any)._identity as ResolvedIdentity | undefined
+      if (!workerId || !identity) {
         ws.close(4001, 'Not authenticated')
         return
       }
@@ -34,9 +42,10 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
       const msg = data as unknown as WorkerMessage
 
       if (msg.type === 'register') {
+        const project = identity.claims.project as string
         await wsManager.register(
           workerId,
-          claims.project,
+          project,
           { send: (d: string) => ws.send(d), close: () => ws.close() },
           msg.capabilities,
           msg.concurrency,

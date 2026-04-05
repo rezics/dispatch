@@ -10,6 +10,9 @@ import { claimRoutes } from './api/claim'
 import { workersRoutes } from './api/workers'
 import { projectsRoutes } from './api/projects'
 import { auditRoutes } from './api/audit'
+import { authRoutes } from './api/auth'
+import { policyRoutes } from './api/policies'
+import { userRoutes } from './api/users'
 import { startReaper } from './reaper/reaper'
 import type { AuthProvider } from './auth/jwt'
 import { WsManager } from './ws/manager'
@@ -58,6 +61,9 @@ const app = new Elysia()
   .use(workersRoutes(db))
   .use(projectsRoutes(db))
   .use(auditRoutes(db))
+  .use(authRoutes(db, authProviders, env.NODE_ENV === 'production'))
+  .use(policyRoutes(db, authProviders))
+  .use(userRoutes(db, authProviders))
   .use(wsRoute(db, authProviders, wsManager))
   .use(dashboardRoute(env.DISPATCH_DISABLE_DASHBOARD))
   .listen(env.PORT)

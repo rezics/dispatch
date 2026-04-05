@@ -8,6 +8,9 @@
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts"
   },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "dependencies": {
     "@elysiajs/bearer": "1.4.3",
     "@elysiajs/cors": "1.4.1",

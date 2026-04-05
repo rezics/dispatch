@@ -101,3 +101,35 @@ model ResultPlugin {
 
   @@id([id, project])
 }
+
+model User {
+  id        String   @id
+  isRoot    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  createdBy String?
+
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model TrustPolicy {
+  id           String   @id @default(uuid())
+  issPattern   String
+  claimField   String
+  claimPattern String
+  permissions  String[]
+  projectScope String?
+  createdBy    String
+  createdAt    DateTime @default(now())
+}

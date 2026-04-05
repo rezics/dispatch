@@ -3,26 +3,29 @@ import type { PrismaClient } from '@prisma/client'
 import { claimTasks } from '../queue/claim'
 import { renewLease } from '../queue/renew'
 import { completeTasks } from '../queue/complete'
-import { authMiddleware, type AuthProvider } from '../auth/middleware'
-import type { WorkerClaims } from '../auth/jwt'
+import { authMiddleware, requirePermission } from '../auth/middleware'
+import type { AuthProvider } from '../auth/jwt'
+import { PERMISSIONS } from '../auth/permissions'
 import { enforceReceipt } from '../notary/trust'
 import { ReceiptError } from '../notary/receipt'
 import type { ResultPluginRunner } from '../plugin/runner'
 
 // Re-export for convenience
-export { type AuthProvider } from '../auth/middleware'
+export { type AuthProvider } from '../auth/jwt'
 
 export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], resultPluginRunner?: ResultPluginRunner) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
-    .use(authMiddleware(authProviders))
+    .use(authMiddleware(authProviders, db))
     .post(
       '/claim',
-      async ({ body, workerClaims, set }) => {
+      async ({ body, identity, set }) => {
         try {
+          requirePermission(identity, PERMISSIONS.TASK_CLAIM)
+          const project = identity.claims.project as string
           const tasks = await claimTasks(
             db,
-            workerClaims.sub,
-            workerClaims.project,
+            identity.sub,
+            project,
             body.count,
             body.lease,
           )
@@ -46,9 +49,9 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
     )
     .post(
       '/lease/renew',
-      async ({ body, workerClaims, set }) => {
+      async ({ body, identity, set }) => {
         try {
-          await renewLease(db, body.taskIds, workerClaims.sub, body.extend)
+          await renewLease(db, body.taskIds, identity.sub, body.extend)
           return { ok: true }
         } catch (err) {
           if ((err as Error).message === 'LEASE_EXPIRED') {
@@ -73,7 +76,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
     )
     .post(
       '/complete',
-      async ({ body, workerClaims, set }) => {
+      async ({ body, identity, set }) => {
         try {
           const doneItems = body.done ?? []
           const failedItems = body.failed ?? []
@@ -99,7 +102,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
                   project,
                   body.receipt as any,
                   doneItems.map((d) => d.id),
-                  workerClaims.sub,
+                  identity.sub,
                 )
               }
             }

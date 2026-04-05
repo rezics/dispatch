@@ -31,6 +31,11 @@ export async function reap(db: PrismaClient) {
   await db.usedNonce.deleteMany({
     where: { expiresAt: { lt: now } },
   })
+
+  // Clean expired sessions
+  await db.session.deleteMany({
+    where: { expiresAt: { lt: now } },
+  })
 }
 
 export function startReaper(db: PrismaClient, interval: string): () => void {

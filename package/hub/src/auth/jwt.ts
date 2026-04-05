@@ -6,15 +6,7 @@ export interface AuthProvider {
   issuer: string
 }
 
-export interface WorkerClaims {
-  sub: string
-  project: string
-  capabilities?: string[]
-  scope: string
-  trust?: string
-}
-
-const jwksCache = new Map<string, jose.FlattenedJWSInput['alg'] extends string ? ReturnType<typeof jose.createRemoteJWKSet> : never>()
+const jwksCache = new Map<string, ReturnType<typeof jose.createRemoteJWKSet>>()
 
 function getJWKS(uri: string) {
   let jwks = jwksCache.get(uri)
@@ -25,10 +17,13 @@ function getJWKS(uri: string) {
   return jwks
 }
 
+/**
+ * Verify a JWT against configured providers. Returns the full JWT payload.
+ */
 export async function verifyWorkerToken(
   token: string,
   providers: AuthProvider[],
-): Promise<WorkerClaims> {
+): Promise<jose.JWTPayload> {
   const errors: Error[] = []
 
   for (const provider of providers) {
@@ -38,14 +33,7 @@ export async function verifyWorkerToken(
         audience: provider.audience,
         issuer: provider.issuer,
       })
-
-      return {
-        sub: payload.sub!,
-        project: payload.project as string,
-        capabilities: payload.capabilities as string[] | undefined,
-        scope: payload.scope as string,
-        trust: payload.trust as string | undefined,
-      }
+      return payload
     } catch (err) {
       errors.push(err as Error)
     }

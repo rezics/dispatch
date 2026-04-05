@@ -7,3 +7,7 @@
 - [ ] desktop-app-and-hardening need to think twice, we also need browser plugin version, with more function
 - [ ] Or perhaps desktop applications shouldn't exist at all? Should we provide an npm package for any kind of worker to consume, instead of building highly complex desktop applications?
 - [ ] prisma: change task type to task tag for a more flexible design
+- [ ] dispatch admin user design, There must be a user who can manage which services can be registered in Dispatch, as well as the permissions for those services.
+example: get a token from rezics-server then you read the service id, get permission, verify info, then use jwks make sure The token comes from the corresponding service.
+The above describes the login process, then the service return a token, use this token, workers can be registered. This process needs to be optimized and simplified.
+- [ ] Maintain a user model: log in via rezics, then run a tool script to set the user's permissions to "owner,"

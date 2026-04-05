@@ -10,6 +10,8 @@
         "prismabox",
         "reflog",
         "shortlog",
-        "stylelintcache"
+        "stylelintcache",
+        "vitepress",
+        "vuepress"
     ]
 }

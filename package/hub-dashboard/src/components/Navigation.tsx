@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
+import { useAuth } from '../auth/AuthContext'
 import { useLL } from '../i18n'
 import type { CSSProperties } from 'react'
 
@@ -30,6 +31,7 @@ const activeLinkStyle: CSSProperties = {
 
 export function Navigation() {
   const { theme, toggle } = useTheme()
+  const { hasPermission, logout } = useAuth()
   const LL = useLL()
 
   const navItems = [
@@ -38,6 +40,13 @@ export function Navigation() {
     { to: '/tasks', label: LL.hub.nav.tasks() },
     { to: '/plugins', label: LL.hub.nav.plugins() },
   ]
+
+  if (hasPermission('admin:policies')) {
+    navItems.push({ to: '/policies', label: 'Policies' })
+  }
+  if (hasPermission('admin:users')) {
+    navItems.push({ to: '/users', label: 'Users' })
+  }
 
   return (
     <nav style={sidebarStyle}>
@@ -54,7 +63,7 @@ export function Navigation() {
           {item.label}
         </NavLink>
       ))}
-      <div style={{ marginTop: 'auto', padding: '16px 20px' }}>
+      <div style={{ marginTop: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <button
           onClick={toggle}
           style={{
@@ -70,6 +79,22 @@ export function Navigation() {
           }}
         >
           {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+        </button>
+        <button
+          onClick={logout}
+          style={{
+            background: 'none',
+            border: '1px solid var(--dispatch-border)',
+            borderRadius: 'var(--dispatch-radius)',
+            padding: '6px 12px',
+            color: 'var(--dispatch-text-secondary)',
+            cursor: 'pointer',
+            fontFamily: 'var(--dispatch-font-family)',
+            fontSize: '13px',
+            width: '100%',
+          }}
+        >
+          Sign Out
         </button>
       </div>
     </nav>
