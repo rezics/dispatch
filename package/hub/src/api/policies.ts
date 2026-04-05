@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import { authMiddleware, requirePermission } from '../auth/middleware'
 import type { AuthProvider } from '../auth/jwt'
 import { PERMISSIONS } from '../auth/permissions'

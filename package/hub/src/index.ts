@@ -3,7 +3,7 @@ import { openapi } from '@elysiajs/openapi'
 import { cors } from '@elysiajs/cors'
 import { serverTiming } from '@elysiajs/server-timing'
 import { env } from './env'
-import { db } from './db'
+import { prisma as db } from '#/prisma/client'
 import { models } from './model'
 import { tasksRoutes } from './api/tasks'
 import { claimRoutes } from './api/claim'
@@ -77,8 +77,15 @@ if (!env.DISPATCH_DISABLE_DASHBOARD) {
   console.log(`Dashboard at http://localhost:${env.PORT}/_dashboard`)
 }
 
-process.on('SIGINT', () => {
+process.on('SIGTERM', async () => {
   stopReaper()
+  await db.$disconnect()
+  process.exit(0)
+})
+
+process.on('SIGINT', async () => {
+  stopReaper()
+  await db.$disconnect()
   process.exit(0)
 })
 

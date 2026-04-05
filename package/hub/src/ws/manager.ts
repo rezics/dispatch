@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import type { WorkerMessage, HubMessage, Task, TaskResult } from '@rezics/dispatch-type'
 
 export interface ConnectedWorker {

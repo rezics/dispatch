@@ -8,7 +8,10 @@
     "skipLibCheck": true,
     "declaration": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": ".",
+    "paths": {
+      "#/*": ["./*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "prisma"]
 }

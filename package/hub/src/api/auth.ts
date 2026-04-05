@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import { verifyWorkerToken, type AuthProvider } from '../auth/jwt'
 import { resolveIdentity } from '../auth/resolve'
 import { hasAnyPermission } from '../auth/permissions'

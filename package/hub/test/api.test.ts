@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeAll, afterAll, beforeEach } from 'bun:test'
 import { Elysia } from 'elysia'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '#/prisma/client'
 import { tasksRoutes } from '../src/api/tasks'
 import { workersRoutes } from '../src/api/workers'
 import { projectsRoutes } from '../src/api/projects'

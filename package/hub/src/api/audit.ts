@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import { verifyReceipt, ReceiptError } from '../notary/receipt'
 
 export const auditRoutes = (db: PrismaClient) =>

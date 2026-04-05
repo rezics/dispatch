@@ -11,6 +11,7 @@
         "reflog",
         "shortlog",
         "stylelintcache",
+        "typebox",
         "vitepress",
         "vuepress"
     ]

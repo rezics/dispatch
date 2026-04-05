@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import type { TaskResult } from '@rezics/dispatch-type'
 import type { ResultPlugin, ResultPluginTask } from './interface'
 import { createStorePlugin } from './store'

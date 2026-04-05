@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import { claimTasks } from '../queue/claim'
 import { renewLease } from '../queue/renew'
 import { completeTasks } from '../queue/complete'

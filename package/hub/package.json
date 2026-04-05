@@ -6,19 +6,18 @@
   "scripts": {
     "prebuild": "cd ../hub-dashboard && bun run build && cp -r dist ../hub/dashboard-dist",
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts"
-  },
-  "prisma": {
+    "start": "bun run src/index.ts",
     "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
     "@elysiajs/bearer": "1.4.3",
     "@elysiajs/cors": "1.4.1",
-    "@elysiajs/static": "^1.4.0",
     "@elysiajs/openapi": "1.4.14",
     "@elysiajs/server-timing": "1.4.0",
+    "@elysiajs/static": "^1.4.0",
     "@prisma/adapter-pg": "7.6.0",
     "@prisma/client": "7.6.0",
+    "@prisma/client-runtime-utils": "7.6.0",
     "@rezics/dispatch-type": "workspace:*",
     "@t3-oss/env-core": "0.13.11",
     "elysia": "1.4.28",

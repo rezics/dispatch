@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 
 export function parseInterval(interval: string): number {
   const match = interval.match(/^(\d+)s$/)

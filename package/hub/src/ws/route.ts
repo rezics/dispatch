@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import type { WorkerMessage } from '@rezics/dispatch-type'
 import { verifyWorkerToken, type AuthProvider } from '../auth/jwt'
 import { resolveIdentity } from '../auth/resolve'

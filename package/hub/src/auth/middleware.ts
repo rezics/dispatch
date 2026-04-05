@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
 import { bearer } from '@elysiajs/bearer'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import { verifyWorkerToken, type AuthProvider } from './jwt'
 import { resolveIdentity } from './resolve'
 import { hasPermission, type ResolvedIdentity } from './permissions'

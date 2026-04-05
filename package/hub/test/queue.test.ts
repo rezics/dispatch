@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeAll, afterAll, beforeEach } from 'bun:test'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '#/prisma/client'
 import { claimTasks } from '../src/queue/claim'
 import { completeTasks } from '../src/queue/complete'
 import { renewLease } from '../src/queue/renew'

@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeAll, afterAll, beforeEach } from 'bun:test'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '#/prisma/client'
 import { reap } from '../src/reaper/reaper'
 
 const connectionString =

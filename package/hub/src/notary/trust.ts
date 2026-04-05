@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 import type { CompletionReceipt } from '@rezics/dispatch-type'
 import { verifyReceipt, validateReceiptFields, ReceiptError } from './receipt'
 import { checkAndStoreNonce } from './nonce'

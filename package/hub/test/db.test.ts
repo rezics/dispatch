@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeAll, afterAll } from 'bun:test'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '#/prisma/client'
 
 const connectionString =
   process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/dispatch'

@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 
 export const projectsRoutes = (db: PrismaClient) =>
   new Elysia({ prefix: '/projects', tags: ['Projects'] })

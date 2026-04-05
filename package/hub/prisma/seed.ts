@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma as db } from './client'
 
 const ROOT_USER_ID = process.argv[2] ?? process.env.DISPATCH_ROOT_USER_ID ?? 'rezics-root-001'
-
-const db = new PrismaClient()
 
 async function main() {
   const user = await db.user.upsert({

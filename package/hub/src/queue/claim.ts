@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '#/prisma/client'
 
 const MAX_LEASE_SECONDS = 3600
 const MAX_CLAIM_COUNT = 5000
