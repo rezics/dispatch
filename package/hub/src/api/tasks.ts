@@ -8,7 +8,10 @@ export const tasksRoutes = (db: PrismaClient, wsManager?: WsManager) =>
     .post(
       '',
       async ({ body, set }) => {
-        const task = await createTask(db, body)
+        const task = await createTask(db, {
+          ...body,
+          scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+        })
         set.status = 201
         return task
       },

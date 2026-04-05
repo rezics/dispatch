@@ -34,7 +34,7 @@ export function Navigation() {
   const { hasPermission, logout } = useAuth()
   const LL = useLL()
 
-  const navItems = [
+  const navItems: { to: string; label: string }[] = [
     { to: '/', label: LL.hub.nav.overview() },
     { to: '/workers', label: LL.hub.nav.workers() },
     { to: '/tasks', label: LL.hub.nav.tasks() },

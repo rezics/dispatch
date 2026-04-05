@@ -58,7 +58,7 @@ export function Tasks() {
     offset: page * PAGE_SIZE,
   })
 
-  const tasks = (data ?? []) as TaskData[]
+  const tasks = (data ?? []) as unknown as TaskData[]
 
   const statusLabel = (status: TaskStatus) => LL.common.status[status]()
 

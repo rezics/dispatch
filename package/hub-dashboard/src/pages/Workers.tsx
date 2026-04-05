@@ -22,7 +22,7 @@ export function Workers() {
   const LL = useLL()
   const { data, isLoading } = useWorkers()
 
-  const workers = (data ?? []) as Worker[]
+  const workers = (data ?? []) as unknown as Worker[]
 
   return (
     <div style={pageStyle}>

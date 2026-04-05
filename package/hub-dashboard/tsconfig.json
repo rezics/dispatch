@@ -8,6 +8,9 @@
     "skipLibCheck": true,
     "declaration": false,
     "jsx": "react-jsx",
+    "paths": {
+      "#/*": ["../hub/*"]
+    },
     "outDir": "dist",
     "rootDir": "src"
   },

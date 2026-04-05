@@ -136,7 +136,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
           }
           if (err && typeof err === 'object' && 'status' in err && (err as any).status === 409) {
             set.status = 409
-            return { error: (err as Error).message }
+            return { error: (err as any).message }
           }
           set.status = 400
           return { error: (err as Error).message }

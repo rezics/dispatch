@@ -27,7 +27,7 @@ export function Plugins() {
   const LL = useLL()
   const { data, isLoading } = useProjects()
 
-  const projects = (data ?? []) as Project[]
+  const projects = (data ?? []) as unknown as Project[]
 
   return (
     <div style={pageStyle}>

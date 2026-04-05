@@ -27,7 +27,7 @@ async function loadPolicies(db: PrismaClient): Promise<CachedPolicy[]> {
     return policyCache
   }
 
-  policyCache = await db.trustPolicy.findMany({
+  const result = await db.trustPolicy.findMany({
     select: {
       id: true,
       issPattern: true,
@@ -37,8 +37,9 @@ async function loadPolicies(db: PrismaClient): Promise<CachedPolicy[]> {
       projectScope: true,
     },
   })
+  policyCache = result
   policyCacheTime = now
-  return policyCache
+  return result
 }
 
 // ── Issuer glob matching ────────────────────────────────────────────
