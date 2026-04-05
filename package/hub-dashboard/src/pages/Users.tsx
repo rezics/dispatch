@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type CSSProperties } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { env } from '../env'
 
 const tableStyle: CSSProperties = {
   width: '100%',
@@ -60,7 +61,7 @@ export function Users() {
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['users'],
     queryFn: async () => {
-      const res = await fetch('/users', { credentials: 'include' })
+      const res = await fetch(`${env.VITE_API_URL}/users`, { credentials: 'include' })
       if (!res.ok) throw new Error('Failed to load users')
       return res.json()
     },
@@ -68,7 +69,7 @@ export function Users() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      const res = await fetch('/users', {
+      const res = await fetch(`${env.VITE_API_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

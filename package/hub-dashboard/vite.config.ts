@@ -8,11 +8,4 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-  server: {
-    proxy: {
-      '/tasks': 'http://localhost:3721',
-      '/workers': 'http://localhost:3721',
-      '/projects': 'http://localhost:3721',
-    },
-  },
 })

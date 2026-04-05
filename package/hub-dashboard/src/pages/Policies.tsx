@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type CSSProperties } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { env } from '../env'
 
 const tableStyle: CSSProperties = {
   width: '100%',
@@ -71,7 +72,7 @@ export function Policies() {
   const { data: policies, isLoading } = useQuery<Policy[]>({
     queryKey: ['policies'],
     queryFn: async () => {
-      const res = await fetch('/policies', { credentials: 'include' })
+      const res = await fetch(`${env.VITE_API_URL}/policies`, { credentials: 'include' })
       if (!res.ok) throw new Error('Failed to load policies')
       return res.json()
     },
@@ -79,7 +80,7 @@ export function Policies() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      const res = await fetch('/policies', {
+      const res = await fetch(`${env.VITE_API_URL}/policies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -103,7 +104,7 @@ export function Policies() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/policies/${id}`, { method: 'DELETE', credentials: 'include' })
+      const res = await fetch(`${env.VITE_API_URL}/policies/${id}`, { method: 'DELETE', credentials: 'include' })
       if (!res.ok) throw new Error('Failed to delete policy')
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['policies'] }),

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { env } from '../env'
 
 interface AuthState {
   authenticated: boolean
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkSession() {
     try {
-      const res = await fetch('/auth/me', { credentials: 'include' })
+      const res = await fetch(`${env.VITE_API_URL}/auth/me`, { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         setState({
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const loginWithPassword = useCallback(async (username: string, password: string) => {
-    const res = await fetch('/auth/login', {
+    const res = await fetch(`${env.VITE_API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loginWithToken = useCallback(async (jwtToken: string) => {
-    const res = await fetch('/auth/login', {
+    const res = await fetch(`${env.VITE_API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    await fetch('/auth/logout', {
+    await fetch(`${env.VITE_API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
     })
