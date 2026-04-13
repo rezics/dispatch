@@ -40,6 +40,7 @@ The Hub is an Elysia web server with these core modules:
 | **WebSocket Manager** | Manages real-time worker connections, dispatches tasks, and tracks progress |
 | **Notary** | Verifies completion receipts per project trust level (HMAC-SHA256) |
 | **Result Plugin Runner** | Routes completed task results to storage, webhooks, or custom handlers |
+| **Auth** | JWT verification, session management, trust policy resolution, and permission-based access control |
 | **Dashboard** | Serves the built-in monitoring web UI at `/_dashboard` |
 
 ## Worker Internals
@@ -89,3 +90,6 @@ Dispatch uses PostgreSQL with Prisma ORM. Key tables:
 | `TaskResult` | Stored results for tasks using the `store` result strategy |
 | `UsedNonce` | Anti-replay nonce cache for receipt verification |
 | `ResultPlugin` | Per-project result plugin configurations |
+| `User` | Dashboard users with optional root privileges and password hash |
+| `Session` | Active dashboard sessions with expiry (7-day TTL, cleaned by Reaper) |
+| `TrustPolicy` | Policy rules that map JWT claims to permissions and project scopes |

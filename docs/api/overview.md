@@ -12,13 +12,17 @@ The default port is `3721`, configurable via the `PORT` environment variable.
 
 ## Authentication
 
-Authenticated endpoints require a Bearer JWT token in the `Authorization` header:
+The Hub supports two authentication methods:
+
+**Bearer JWT** -- Include a JWT in the `Authorization` header. The token is verified against configured auth providers, and the caller's permissions are resolved via [trust policies](/api/policies).
 
 ```
 Authorization: Bearer <jwt-token>
 ```
 
-Authenticated endpoints are marked with a lock icon in this documentation.
+**Session Cookie** -- Dashboard users authenticate via `POST /auth/login` (JWT or username/password). On success, a `dispatch_session` HttpOnly cookie is set. Subsequent requests are authenticated automatically via this cookie.
+
+Authenticated endpoints are marked with a 🔒 icon in this documentation.
 
 ## Content Type
 
@@ -51,6 +55,7 @@ Common HTTP status codes:
 | Status | Meaning |
 | --- | --- |
 | `200` | Success |
+| `401` | Not authenticated or session expired |
 | `201` | Created |
 | `400` | Invalid request body or parameters |
 | `403` | Signature verification failed |
@@ -89,4 +94,13 @@ GET /tasks?project=my-project&limit=50&offset=100
 | `POST` | [`/projects`](/api/projects#create-project) | Create a project |
 | `PATCH` | [`/projects/:id`](/api/projects#update-project) | Update a project |
 | `GET` | [`/projects/:id/stats`](/api/projects#get-project-stats) | Get project stats |
+| `POST` | [`/auth/login`](/api/auth#login) | Login (JWT or password) |
+| `GET` | [`/auth/me`](/api/auth#current-user) | Get current user |
+| `POST` | [`/auth/logout`](/api/auth#logout) | Logout |
+| `GET` | [`/users`](/api/users#list-users) | List users 🔒 |
+| `POST` | [`/users`](/api/users#create-user) | Create a user 🔒 |
+| `GET` | [`/policies`](/api/policies#list-policies) | List trust policies 🔒 |
+| `POST` | [`/policies`](/api/policies#create-policy) | Create a trust policy 🔒 |
+| `PATCH` | [`/policies/:id`](/api/policies#update-policy) | Update a trust policy 🔒 |
+| `DELETE` | [`/policies/:id`](/api/policies#delete-policy) | Delete a trust policy 🔒 |
 | `WS` | [`/workers`](/api/websocket) | Worker WebSocket |

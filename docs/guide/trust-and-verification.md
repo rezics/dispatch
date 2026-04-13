@@ -91,3 +91,34 @@ curl -X POST http://localhost:3721/tasks/audit \
 ```
 
 The signature is computed over `JSON.stringify({ taskIds: sortedTaskIds, project })` using the project's `receiptSecret`.
+
+## Trust Policies
+
+Trust policies provide role-based access control by mapping JWT claims to permissions. When a Bearer JWT arrives, the Hub resolves the caller's identity by evaluating all matching policies.
+
+### Policy Fields
+
+| Field | Description |
+| --- | --- |
+| `issPattern` | Glob pattern matched against the JWT `iss` claim (`*` matches a single segment, not dots) |
+| `claimField` | The JWT claim to extract (e.g., `email`, `role`, `sub`) |
+| `claimPattern` | Regex pattern tested against the extracted claim value |
+| `permissions` | Permissions granted when the policy matches |
+| `projectScope` | Optional project restriction. If omitted, the policy applies globally. |
+
+### Resolution Flow
+
+1. Load all trust policies (cached for 30 seconds).
+2. If the JWT's `sub` matches a root user in the database, grant all permissions immediately.
+3. Otherwise, iterate over policies:
+   - Match `issPattern` against the token's `iss` claim.
+   - Extract the value of `claimField` from the token.
+   - Test `claimPattern` against the extracted value.
+   - Collect `permissions` from all matching policies.
+4. Build a `ResolvedIdentity` with the aggregated permissions and project scopes.
+
+### Permission Wildcards
+
+Permissions support wildcard matching. For example, `admin:*` matches `admin:users`, `admin:policies`, and any other `admin:` permission.
+
+See [Trust Policies API](/api/policies) for managing policies via the REST API.

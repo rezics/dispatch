@@ -156,3 +156,57 @@ function signReceipt(
 ```
 
 See [Trust & Verification](/guide/trust-and-verification) for usage details.
+
+## Auth Types
+
+### `ResolvedIdentity`
+
+Returned by the auth middleware after resolving a JWT or session into a set of permissions.
+
+```typescript
+interface ResolvedIdentity {
+  sub: string
+  isRoot: boolean
+  permissions: string[]
+  projects: string[] | '*'
+  claims: Record<string, unknown>
+}
+```
+
+### `Permissions`
+
+```typescript
+const PERMISSIONS = {
+  WORKER_REGISTER:     'worker:register',
+  WORKER_UNREGISTER:   'worker:unregister',
+  TASK_CLAIM:          'task:claim',
+  TASK_COMPLETE:       'task:complete',
+  DASHBOARD_VIEW:      'dashboard:view',
+  DASHBOARD_PROJECTS:  'dashboard:projects',
+  DASHBOARD_WORKERS:   'dashboard:workers',
+  DASHBOARD_TASKS:     'dashboard:tasks',
+  DASHBOARD_POLICIES:  'dashboard:policies',
+  ADMIN_USERS:         'admin:users',
+  ADMIN_POLICIES:      'admin:policies',
+  ADMIN_ALL:           'admin:*',
+}
+```
+
+Wildcard permissions (e.g., `admin:*`) match any permission sharing the same prefix.
+
+### `TrustPolicy`
+
+```typescript
+interface TrustPolicy {
+  id: string
+  issPattern: string      // Glob pattern for JWT issuer
+  claimField: string      // JWT claim to extract
+  claimPattern: string    // Regex to test claim value
+  permissions: string[]   // Granted permissions
+  projectScope: string | null  // Optional project restriction
+  createdBy: string
+  createdAt: Date
+}
+```
+
+See [Trust Policies API](/api/policies) for CRUD operations.

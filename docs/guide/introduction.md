@@ -9,6 +9,7 @@ Dispatch is a distributed task dispatch system with verifiable execution. It pro
 - **Verifiable Execution** -- Three trust levels with HMAC-SHA256 signed completion receipts.
 - **Plugin Architecture** -- Define task handlers as typed plugins with lifecycle hooks and progress reporting.
 - **Result Routing** -- Route completed task results to storage, webhooks, or custom plugins.
+- **Authentication & Authorization** -- Session-based dashboard login (JWT or password), trust policies for mapping JWT claims to permissions, and role-based access control.
 - **Real-Time Dashboards** -- Built-in web dashboards for both Hub and Worker monitoring.
 - **Internationalization** -- Type-safe i18n support with `typesafe-i18n`.
 
