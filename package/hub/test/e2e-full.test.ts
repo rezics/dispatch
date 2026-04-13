@@ -20,7 +20,7 @@ describe('E2E: HTTP Lease full loop', () => {
     await cleanUp()
     // Create project with full trust
     await db.project.create({
-      data: { id: TEST_PROJECT, trustLevel: 'full' },
+      data: { id: TEST_PROJECT, verification: 'none' },
     })
   })
 
@@ -79,7 +79,7 @@ describe('E2E: Receipted trust flow', () => {
     await db.project.create({
       data: {
         id: RECEIPTED_PROJECT,
-        trustLevel: 'receipted',
+        verification: 'receipted',
         receiptSecret: RECEIPT_SECRET,
       },
     })
@@ -147,7 +147,7 @@ describe('E2E: Audited trust flow', () => {
     await db.project.create({
       data: {
         id: AUDITED_PROJECT,
-        trustLevel: 'audited',
+        verification: 'audited',
         receiptSecret: RECEIPT_SECRET,
       },
     })

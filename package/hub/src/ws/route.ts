@@ -2,8 +2,8 @@ import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
 import type { WorkerMessage } from '@rezics/dispatch-type'
 import { verifyWorkerToken, type AuthProvider } from '../auth/jwt'
-import { resolveIdentity } from '../auth/resolve'
-import { hasPermission, type ResolvedIdentity, PERMISSIONS } from '../auth/permissions'
+import { resolveWorkerAccess, type WorkerIdentity } from '../auth/resolve'
+import { requireProjectAccess } from '../auth/middleware'
 import { WsManager } from './manager'
 
 export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManager: WsManager) =>
@@ -16,11 +16,14 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
       }
 
       try {
-        const claims = await verifyWorkerToken(token, authProviders)
-        const identity = await resolveIdentity(claims as unknown as Record<string, unknown>, db)
+        const claims = (await verifyWorkerToken(token, authProviders)) as unknown as Record<
+          string,
+          unknown
+        >
+        const identity = await resolveWorkerAccess(claims, db)
 
-        if (!hasPermission(identity, PERMISSIONS.WORKER_REGISTER)) {
-          ws.close(4003, 'Missing worker:register permission')
+        if (identity.projects !== '*' && identity.projects.length === 0) {
+          ws.close(4003, 'No project access')
           return
         }
 
@@ -33,7 +36,7 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
 
     async message(ws, data) {
       const workerId = (ws as any)._workerId as string | undefined
-      const identity = (ws as any)._identity as ResolvedIdentity | undefined
+      const identity = (ws as any)._identity as WorkerIdentity | undefined
       if (!workerId || !identity) {
         ws.close(4001, 'Not authenticated')
         return
@@ -42,7 +45,14 @@ export const wsRoute = (db: PrismaClient, authProviders: AuthProvider[], wsManag
       const msg = data as unknown as WorkerMessage
 
       if (msg.type === 'register') {
-        const project = identity.claims.project as string
+        const project = (msg as any).project as string
+        try {
+          requireProjectAccess(identity, project)
+        } catch {
+          ws.close(4003, `No access to project: ${project}`)
+          return
+        }
+
         await wsManager.register(
           workerId,
           project,

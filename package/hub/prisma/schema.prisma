@@ -17,7 +17,7 @@ datasource db {
 
 model Project {
   id            String   @id
-  trustLevel    String   @default("receipted")
+  verification  String   @default("receipted") @map("trustLevel")
   receiptSecret String?
   jwksUri       String?
   createdAt     DateTime @default(now())
@@ -125,13 +125,14 @@ model Session {
   @@index([expiresAt])
 }
 
-model TrustPolicy {
+model AccessPolicy {
   id           String   @id @default(uuid())
   issPattern   String
   claimField   String
   claimPattern String
-  permissions  String[]
   projectScope String?
   createdBy    String
   createdAt    DateTime @default(now())
+
+  @@map("TrustPolicy")
 }

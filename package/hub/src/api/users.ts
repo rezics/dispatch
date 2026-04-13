@@ -1,16 +1,13 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
-import { authMiddleware, requirePermission } from '../auth/middleware'
-import type { AuthProvider } from '../auth/jwt'
-import { PERMISSIONS } from '../auth/permissions'
+import { adminAuth } from '../auth/middleware'
 
-export const userRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
+export const userRoutes = (db: PrismaClient) =>
   new Elysia({ prefix: '/users', tags: ['Users'] })
-    .use(authMiddleware(authProviders, db))
+    .use(adminAuth(db))
     .get(
       '/',
-      async ({ identity }) => {
-        requirePermission(identity, PERMISSIONS.ADMIN_USERS)
+      async () => {
         return db.user.findMany({ orderBy: { createdAt: 'desc' } })
       },
       {
@@ -22,14 +19,7 @@ export const userRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
     )
     .post(
       '/',
-      async ({ body, identity, set }) => {
-        requirePermission(identity, PERMISSIONS.ADMIN_USERS)
-        // Creating a root user requires the caller to also be root
-        if (body.isRoot && !identity.isRoot) {
-          set.status = 403
-          return { error: 'Only root users can create other root users' }
-        }
-
+      async ({ body, admin, set }) => {
         const existing = await db.user.findUnique({ where: { id: body.id } })
         if (existing) {
           set.status = 409
@@ -40,7 +30,7 @@ export const userRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
           data: {
             id: body.id,
             isRoot: body.isRoot ?? false,
-            createdBy: identity.sub,
+            createdBy: admin.userId,
           },
         })
 

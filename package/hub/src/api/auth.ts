@@ -1,7 +1,5 @@
 import { Elysia, t } from 'elysia'
-import { bearer } from '@elysiajs/bearer'
 import type { PrismaClient } from '#/prisma/client'
-import { verifyWorkerToken, type AuthProvider } from '../auth/jwt'
 
 const SESSION_COOKIE = 'dispatch_session'
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -32,39 +30,12 @@ async function createSession(db: PrismaClient, userId: string, isProduction: boo
   return { token: sessionToken, expiresAt: expiresAt.toISOString() }
 }
 
-export const authRoutes = (db: PrismaClient, isProduction: boolean, authProviders: AuthProvider[]) =>
+export const authRoutes = (db: PrismaClient, isProduction: boolean) =>
   new Elysia({ prefix: '/auth', tags: ['Auth'] })
-    .use(bearer())
     .post(
       '/login',
-      async ({ bearer: token, body, set }) => {
-        // Bearer token present → JWT path
-        if (token) {
-          let claims
-          try {
-            claims = await verifyWorkerToken(token, authProviders)
-          } catch (err) {
-            set.status = 401
-            const message =
-              err instanceof Error && err.message.includes('expired')
-                ? 'Token expired'
-                : 'Invalid token'
-            return { error: message }
-          }
-
-          const sub = claims.sub as string
-          const user = await db.user.findUnique({ where: { id: sub } })
-
-          if (!user || !user.isRoot) {
-            set.status = 403
-            return { error: 'Dashboard login requires root' }
-          }
-
-          return createSession(db, user.id, isProduction, set)
-        }
-
-        // No Bearer token → password path
-        const { username, password } = body ?? {}
+      async ({ body, set }) => {
+        const { username, password } = body
 
         if (!username || !password) {
           set.status = 401
@@ -92,16 +63,14 @@ export const authRoutes = (db: PrismaClient, isProduction: boolean, authProvider
         return createSession(db, user.id, isProduction, set)
       },
       {
-        body: t.Optional(
-          t.Object({
-            username: t.String(),
-            password: t.String(),
-          }),
-        ),
+        body: t.Object({
+          username: t.String(),
+          password: t.String(),
+        }),
         detail: {
           summary: 'Login',
           description:
-            'Authenticate via Bearer JWT or username/password to create a dashboard session.',
+            'Authenticate via username/password to create a dashboard session.',
         },
       },
     )
@@ -129,7 +98,6 @@ export const authRoutes = (db: PrismaClient, isProduction: boolean, authProvider
         return {
           sub: session.user.id,
           isRoot: session.user.isRoot,
-          permissions: session.user.isRoot ? ['*'] : [],
         }
       },
       {

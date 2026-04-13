@@ -1,5 +1,16 @@
 import type { PrismaClient } from '#/prisma/client'
-import type { ResolvedIdentity } from './permissions'
+
+// ── Types ──────────────────────────────────────────────────────────
+
+export interface WorkerIdentity {
+  sub: string
+  projects: string[] | '*'
+}
+
+export interface AdminSession {
+  userId: string
+  isRoot: boolean
+}
 
 // ── Policy cache ────────────────────────────────────────────────────
 
@@ -8,7 +19,6 @@ type CachedPolicy = {
   issPattern: string
   claimField: string
   claimPattern: string
-  permissions: string[]
   projectScope: string | null
 }
 
@@ -27,13 +37,12 @@ async function loadPolicies(db: PrismaClient): Promise<CachedPolicy[]> {
     return policyCache
   }
 
-  const result = await db.trustPolicy.findMany({
+  const result = await db.accessPolicy.findMany({
     select: {
       id: true,
       issPattern: true,
       claimField: true,
       claimPattern: true,
-      permissions: true,
       projectScope: true,
     },
   })
@@ -45,7 +54,6 @@ async function loadPolicies(db: PrismaClient): Promise<CachedPolicy[]> {
 // ── Issuer glob matching ────────────────────────────────────────────
 
 function issuerGlobToRegex(pattern: string): RegExp {
-  // Escape regex special chars except *, then replace * with single-segment match
   const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
   const regexStr = escaped.replace(/\*/g, '[^.]+')
   return new RegExp(`^${regexStr}$`)
@@ -56,65 +64,38 @@ function matchesIssuer(issuer: string, pattern: string): boolean {
   return issuerGlobToRegex(pattern).test(issuer)
 }
 
-// ── Identity resolution ─────────────────────────────────────────────
+// ── Worker access resolution ────────────────────────────────────────
 
-export async function resolveIdentity(
+export async function resolveWorkerAccess(
   claims: Record<string, unknown>,
   db: PrismaClient,
-): Promise<ResolvedIdentity> {
+): Promise<WorkerIdentity> {
   const sub = claims.sub as string
   const iss = claims.iss as string | undefined
 
-  // Check User table for root status
-  const user = await db.user.findUnique({ where: { id: sub } })
-  if (user?.isRoot) {
-    return {
-      sub,
-      isRoot: true,
-      permissions: ['*'],
-      projects: '*',
-      claims,
-    }
-  }
-
-  // Match against trust policies
   const policies = await loadPolicies(db)
-  const permissions = new Set<string>()
   const projects = new Set<string>()
   let hasGlobalScope = false
 
   for (const policy of policies) {
-    // Check issuer match
     if (iss && !matchesIssuer(iss, policy.issPattern)) continue
 
-    // Check claim field + regex match
     const claimValue = claims[policy.claimField]
     if (claimValue === undefined) continue
 
     const claimStr = String(claimValue)
     if (!new RegExp(policy.claimPattern).test(claimStr)) continue
 
-    // Policy matches — add permissions
-    for (const perm of policy.permissions) {
-      permissions.add(perm)
-    }
-
-    // Resolve project scope
+    // Policy matches — add project access
     if (policy.projectScope === null) {
       hasGlobalScope = true
     } else {
-      const projectId = claims[policy.projectScope]
-      if (typeof projectId === 'string') {
-        projects.add(projectId)
-      }
+      projects.add(policy.projectScope)
     }
   }
 
   return {
     sub,
-    isRoot: false,
-    permissions: [...permissions],
     projects: hasGlobalScope ? '*' : [...projects],
-    claims,
   }
 }

@@ -91,12 +91,12 @@ curl -X POST http://localhost:3721/projects \
   -H "Content-Type: application/json" \
   -d '{
     "id": "my-project",
-    "trustLevel": "receipted",
+    "verification": "receipted",
     "receiptSecret": "my-secret-key"
   }'
 
 # Update trust level
 curl -X PATCH http://localhost:3721/projects/my-project \
   -H "Content-Type: application/json" \
-  -d '{ "trustLevel": "audited" }'
+  -d '{ "verification": "audited" }'
 ```

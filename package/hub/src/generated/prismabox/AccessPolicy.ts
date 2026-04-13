@@ -4,13 +4,12 @@ import { __transformDate__ } from "./__transformDate__";
 
 import { __nullable__ } from "./__nullable__";
 
-export const TrustPolicyPlain = t.Object(
+export const AccessPolicyPlain = t.Object(
   {
     id: t.String(),
     issPattern: t.String(),
     claimField: t.String(),
     claimPattern: t.String(),
-    permissions: t.Array(t.String(), { additionalProperties: false }),
     projectScope: __nullable__(t.String()),
     createdBy: t.String(),
     createdAt: t.Date(),
@@ -18,47 +17,43 @@ export const TrustPolicyPlain = t.Object(
   { additionalProperties: false },
 );
 
-export const TrustPolicyRelations = t.Object(
+export const AccessPolicyRelations = t.Object(
   {},
   { additionalProperties: false },
 );
 
-export const TrustPolicyPlainInputCreate = t.Object(
+export const AccessPolicyPlainInputCreate = t.Object(
   {
     issPattern: t.String(),
     claimField: t.String(),
     claimPattern: t.String(),
-    permissions: t.Array(t.String(), { additionalProperties: false }),
     projectScope: t.Optional(__nullable__(t.String())),
     createdBy: t.String(),
   },
   { additionalProperties: false },
 );
 
-export const TrustPolicyPlainInputUpdate = t.Object(
+export const AccessPolicyPlainInputUpdate = t.Object(
   {
     issPattern: t.Optional(t.String()),
     claimField: t.Optional(t.String()),
     claimPattern: t.Optional(t.String()),
-    permissions: t.Optional(
-      t.Array(t.String(), { additionalProperties: false }),
-    ),
     projectScope: t.Optional(__nullable__(t.String())),
     createdBy: t.Optional(t.String()),
   },
   { additionalProperties: false },
 );
 
-export const TrustPolicyRelationsInputCreate = t.Object(
+export const AccessPolicyRelationsInputCreate = t.Object(
   {},
   { additionalProperties: false },
 );
 
-export const TrustPolicyRelationsInputUpdate = t.Partial(
+export const AccessPolicyRelationsInputUpdate = t.Partial(
   t.Object({}, { additionalProperties: false }),
 );
 
-export const TrustPolicyWhere = t.Partial(
+export const AccessPolicyWhere = t.Partial(
   t.Recursive(
     (Self) =>
       t.Object(
@@ -70,18 +65,17 @@ export const TrustPolicyWhere = t.Partial(
           issPattern: t.String(),
           claimField: t.String(),
           claimPattern: t.String(),
-          permissions: t.Array(t.String(), { additionalProperties: false }),
           projectScope: t.String(),
           createdBy: t.String(),
           createdAt: t.Date(),
         },
         { additionalProperties: false },
       ),
-    { $id: "TrustPolicy" },
+    { $id: "AccessPolicy" },
   ),
 );
 
-export const TrustPolicyWhereUnique = t.Recursive(
+export const AccessPolicyWhereUnique = t.Recursive(
   (Self) =>
     t.Intersect(
       [
@@ -113,7 +107,6 @@ export const TrustPolicyWhereUnique = t.Recursive(
               issPattern: t.String(),
               claimField: t.String(),
               claimPattern: t.String(),
-              permissions: t.Array(t.String(), { additionalProperties: false }),
               projectScope: t.String(),
               createdBy: t.String(),
               createdAt: t.Date(),
@@ -124,17 +117,16 @@ export const TrustPolicyWhereUnique = t.Recursive(
       ],
       { additionalProperties: false },
     ),
-  { $id: "TrustPolicy" },
+  { $id: "AccessPolicy" },
 );
 
-export const TrustPolicySelect = t.Partial(
+export const AccessPolicySelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
       issPattern: t.Boolean(),
       claimField: t.Boolean(),
       claimPattern: t.Boolean(),
-      permissions: t.Boolean(),
       projectScope: t.Boolean(),
       createdBy: t.Boolean(),
       createdAt: t.Boolean(),
@@ -144,11 +136,11 @@ export const TrustPolicySelect = t.Partial(
   ),
 );
 
-export const TrustPolicyInclude = t.Partial(
+export const AccessPolicyInclude = t.Partial(
   t.Object({ _count: t.Boolean() }, { additionalProperties: false }),
 );
 
-export const TrustPolicyOrderBy = t.Partial(
+export const AccessPolicyOrderBy = t.Partial(
   t.Object(
     {
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
@@ -161,9 +153,6 @@ export const TrustPolicyOrderBy = t.Partial(
         additionalProperties: false,
       }),
       claimPattern: t.Union([t.Literal("asc"), t.Literal("desc")], {
-        additionalProperties: false,
-      }),
-      permissions: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       projectScope: t.Union([t.Literal("asc"), t.Literal("desc")], {
@@ -180,17 +169,17 @@ export const TrustPolicyOrderBy = t.Partial(
   ),
 );
 
-export const TrustPolicy = t.Composite(
-  [TrustPolicyPlain, TrustPolicyRelations],
+export const AccessPolicy = t.Composite(
+  [AccessPolicyPlain, AccessPolicyRelations],
   { additionalProperties: false },
 );
 
-export const TrustPolicyInputCreate = t.Composite(
-  [TrustPolicyPlainInputCreate, TrustPolicyRelationsInputCreate],
+export const AccessPolicyInputCreate = t.Composite(
+  [AccessPolicyPlainInputCreate, AccessPolicyRelationsInputCreate],
   { additionalProperties: false },
 );
 
-export const TrustPolicyInputUpdate = t.Composite(
-  [TrustPolicyPlainInputUpdate, TrustPolicyRelationsInputUpdate],
+export const AccessPolicyInputUpdate = t.Composite(
+  [AccessPolicyPlainInputUpdate, AccessPolicyRelationsInputUpdate],
   { additionalProperties: false },
 );

@@ -1,17 +1,19 @@
-# Trust Policies
+# Access Policies
 
-Trust policies control how JWT claims are mapped to permissions. They enable fine-grained authorization for workers and dashboard users authenticated via external identity providers.
+Access policies control how JWT claims are mapped to project access for workers. A matching policy grants a worker access to the specified project -- all worker capabilities (register, claim, complete, renew lease) are implied.
 
-All endpoints require the `admin:policies` permission.
+All endpoints require admin authentication (root user via session cookie).
 
 ## How Policies Work
 
-When a request arrives with a Bearer JWT, the Hub resolves the caller's identity by matching the token's claims against trust policies:
+When a request arrives with a Bearer JWT, the Hub resolves the worker's project access by matching the token's claims against access policies:
 
 1. **Issuer matching** -- The policy's `issPattern` is compared against the token's `iss` claim using glob matching (`*` matches a single segment, not dots).
 2. **Claim extraction** -- The value of the JWT field named by `claimField` is read.
 3. **Pattern matching** -- The extracted value is tested against `claimPattern` (a regular expression).
-4. **Permission grant** -- If both match, the policy's `permissions` are granted to the caller.
+4. **Project grant** -- If both match, the worker is granted access to the project specified by `projectScope`.
+
+If multiple policies match, the worker's access is the union of all matched project scopes. If any matched policy has `projectScope: null`, the worker has global access.
 
 Policies are cached in memory for 30 seconds. Creating, updating, or deleting a policy immediately invalidates the cache.
 
@@ -20,10 +22,10 @@ Policies are cached in memory for 30 seconds. Creating, updating, or deleting a 
 ## List Policies
 
 ```
-GET /policies 🔒
+GET /policies
 ```
 
-Returns all trust policies, ordered by creation date (newest first).
+Returns all access policies, ordered by creation date (newest first).
 
 ### Response `200`
 
@@ -34,7 +36,6 @@ Returns all trust policies, ordered by creation date (newest first).
     "issPattern": "accounts.google.com",
     "claimField": "email",
     "claimPattern": ".*@mycompany\\.com$",
-    "permissions": ["worker:register", "task:claim", "task:complete"],
     "projectScope": "my-project",
     "createdBy": "root",
     "createdAt": "2025-01-01T00:00:00.000Z"
@@ -47,7 +48,7 @@ Returns all trust policies, ordered by creation date (newest first).
 ## Create Policy
 
 ```
-POST /policies 🔒
+POST /policies
 ```
 
 ### Request Body
@@ -57,8 +58,7 @@ POST /policies 🔒
 | `issPattern` | `string` | Yes | Glob pattern to match the JWT `iss` claim |
 | `claimField` | `string` | Yes | JWT claim field to extract (e.g., `email`, `role`, `sub`) |
 | `claimPattern` | `string` | Yes | Regex pattern to test against the extracted claim value |
-| `permissions` | `string[]` | Yes | Permissions to grant when the policy matches |
-| `projectScope` | `string` | No | Restrict the policy to a specific project. If omitted, the policy applies globally. |
+| `projectScope` | `string` | No | Literal project ID to grant access to. If omitted, grants access to all projects. |
 
 ### Response `201`
 
@@ -66,17 +66,16 @@ Returns the created policy object.
 
 ### Example
 
-Grant worker permissions to any Google-issued JWT with a `@mycompany.com` email, scoped to `my-project`:
+Grant project access to any Google-issued JWT with a `@mycompany.com` email, scoped to `my-project`:
 
 ```bash
 curl -X POST http://localhost:3721/policies \
-  -H "Authorization: Bearer <admin-token>" \
+  -H "Cookie: dispatch_session=<session-token>" \
   -H "Content-Type: application/json" \
   -d '{
     "issPattern": "accounts.google.com",
     "claimField": "email",
     "claimPattern": ".*@mycompany\\.com$",
-    "permissions": ["worker:register", "task:claim", "task:complete"],
     "projectScope": "my-project"
   }'
 ```
@@ -86,7 +85,7 @@ curl -X POST http://localhost:3721/policies \
 ## Update Policy
 
 ```
-PATCH /policies/:id 🔒
+PATCH /policies/:id
 ```
 
 Updates one or more fields on an existing policy. Only include the fields you want to change.
@@ -100,7 +99,6 @@ All fields are optional:
 | `issPattern` | `string` | New issuer glob pattern |
 | `claimField` | `string` | New claim field |
 | `claimPattern` | `string` | New claim regex pattern |
-| `permissions` | `string[]` | New permissions list |
 | `projectScope` | `string \| null` | New project scope, or `null` for global |
 
 ### Response `200`
@@ -118,7 +116,7 @@ Returns the updated policy object.
 ## Delete Policy
 
 ```
-DELETE /policies/:id 🔒
+DELETE /policies/:id
 ```
 
 ### Response `200`
@@ -132,24 +130,3 @@ DELETE /policies/:id 🔒
 | Status | Error | Cause |
 | --- | --- | --- |
 | `404` | `Policy not found` | No policy with this ID |
-
----
-
-## Available Permissions
-
-| Permission | Description |
-| --- | --- |
-| `worker:register` | Register a worker connection |
-| `worker:unregister` | Unregister a worker |
-| `task:claim` | Claim tasks from the queue |
-| `task:complete` | Submit task completion results |
-| `dashboard:view` | View the dashboard |
-| `dashboard:projects` | View projects in the dashboard |
-| `dashboard:workers` | View workers in the dashboard |
-| `dashboard:tasks` | View tasks in the dashboard |
-| `dashboard:policies` | View policies in the dashboard |
-| `admin:users` | Manage users |
-| `admin:policies` | Manage trust policies |
-| `admin:*` | All admin permissions (wildcard) |
-
-Root users bypass all permission checks.

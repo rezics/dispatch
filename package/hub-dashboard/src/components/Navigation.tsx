@@ -31,7 +31,7 @@ const activeLinkStyle: CSSProperties = {
 
 export function Navigation() {
   const { theme, toggle } = useTheme()
-  const { hasPermission, logout } = useAuth()
+  const { logout } = useAuth()
   const LL = useLL()
 
   const navItems: { to: string; label: string }[] = [
@@ -39,14 +39,9 @@ export function Navigation() {
     { to: '/workers', label: LL.hub.nav.workers() },
     { to: '/tasks', label: LL.hub.nav.tasks() },
     { to: '/plugins', label: LL.hub.nav.plugins() },
+    { to: '/policies', label: 'Policies' },
+    { to: '/users', label: 'Users' },
   ]
-
-  if (hasPermission('admin:policies')) {
-    navItems.push({ to: '/policies', label: 'Policies' })
-  }
-  if (hasPermission('admin:users')) {
-    navItems.push({ to: '/users', label: 'Users' })
-  }
 
   return (
     <nav style={sidebarStyle}>

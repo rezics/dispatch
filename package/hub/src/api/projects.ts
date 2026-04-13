@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
+import { adminAuth } from '../auth/middleware'
 
 export const projectsRoutes = (db: PrismaClient) =>
   new Elysia({ prefix: '/projects', tags: ['Projects'] })
@@ -12,53 +13,6 @@ export const projectsRoutes = (db: PrismaClient) =>
         detail: {
           summary: 'List projects',
           description: 'List all projects',
-        },
-      },
-    )
-    .post(
-      '',
-      async ({ body, set }) => {
-        const project = await db.project.create({ data: body })
-        set.status = 201
-        return project
-      },
-      {
-        body: t.Object({
-          id: t.String(),
-          trustLevel: t.Optional(t.String()),
-          receiptSecret: t.Optional(t.String()),
-          jwksUri: t.Optional(t.String()),
-        }),
-        detail: {
-          summary: 'Create project',
-          description: 'Register a new project',
-        },
-      },
-    )
-    .patch(
-      '/:id',
-      async ({ params, body, set }) => {
-        try {
-          const project = await db.project.update({
-            where: { id: params.id },
-            data: body,
-          })
-          return project
-        } catch {
-          set.status = 404
-          return { error: 'Project not found' }
-        }
-      },
-      {
-        params: t.Object({ id: t.String() }),
-        body: t.Object({
-          trustLevel: t.Optional(t.String()),
-          receiptSecret: t.Optional(t.String()),
-          jwksUri: t.Optional(t.String()),
-        }),
-        detail: {
-          summary: 'Update project',
-          description: 'Update project settings',
         },
       },
     )
@@ -85,6 +39,57 @@ export const projectsRoutes = (db: PrismaClient) =>
         detail: {
           summary: 'Get project stats',
           description: 'Get task count breakdown by status for a project',
+        },
+      },
+    )
+    // Admin-only mutation routes
+    .use(adminAuth(db))
+    .post(
+      '',
+      async ({ body, set }) => {
+        const project = await db.project.create({ data: body })
+        set.status = 201
+        return project
+      },
+      {
+        body: t.Object({
+          id: t.String(),
+          verification: t.Optional(t.String()),
+          receiptSecret: t.Optional(t.String()),
+          jwksUri: t.Optional(t.String()),
+        }),
+        detail: {
+          summary: 'Create project',
+          description: 'Register a new project (admin only)',
+          security: [{ Bearer: [] }],
+        },
+      },
+    )
+    .patch(
+      '/:id',
+      async ({ params, body, set }) => {
+        try {
+          const project = await db.project.update({
+            where: { id: params.id },
+            data: body,
+          })
+          return project
+        } catch {
+          set.status = 404
+          return { error: 'Project not found' }
+        }
+      },
+      {
+        params: t.Object({ id: t.String() }),
+        body: t.Object({
+          verification: t.Optional(t.String()),
+          receiptSecret: t.Optional(t.String()),
+          jwksUri: t.Optional(t.String()),
+        }),
+        detail: {
+          summary: 'Update project',
+          description: 'Update project settings (admin only)',
+          security: [{ Bearer: [] }],
         },
       },
     )

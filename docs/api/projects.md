@@ -1,6 +1,8 @@
 # Projects API
 
-Projects group tasks and workers under a shared configuration, including trust level settings.
+Projects group tasks and workers under a shared configuration, including verification mode settings.
+
+`GET` routes are public. `POST` and `PATCH` require admin authentication (root user via session cookie).
 
 ## List Projects
 
@@ -20,7 +22,7 @@ curl http://localhost:3721/projects
 [
   {
     "id": "my-project",
-    "trustLevel": "receipted",
+    "verification": "receipted",
     "receiptSecret": "secret-key",
     "jwksUri": null,
     "createdAt": "2026-04-02T00:00:00.000Z"
@@ -34,12 +36,14 @@ curl http://localhost:3721/projects
 POST /projects
 ```
 
+Requires admin authentication.
+
 **Request Body:**
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `id` | `string` | Yes | | Unique project identifier |
-| `trustLevel` | `string` | No | `"receipted"` | Trust level: `full`, `receipted`, or `audited` |
+| `verification` | `string` | No | `"receipted"` | Verification mode: `none`, `receipted`, or `audited` |
 | `receiptSecret` | `string` | No | | HMAC secret for receipt/audit verification |
 | `jwksUri` | `string` | No | | JWKS URI for JWT verification |
 
@@ -47,10 +51,11 @@ POST /projects
 
 ```bash
 curl -X POST http://localhost:3721/projects \
+  -H "Cookie: dispatch_session=<session-token>" \
   -H "Content-Type: application/json" \
   -d '{
     "id": "crawler-project",
-    "trustLevel": "receipted",
+    "verification": "receipted",
     "receiptSecret": "my-secret-key"
   }'
 ```
@@ -63,11 +68,13 @@ curl -X POST http://localhost:3721/projects \
 PATCH /projects/:id
 ```
 
+Requires admin authentication.
+
 **Request Body:**
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `trustLevel` | `string` | New trust level |
+| `verification` | `string` | New verification mode |
 | `receiptSecret` | `string` | New receipt secret |
 | `jwksUri` | `string` | New JWKS URI |
 
@@ -75,8 +82,9 @@ PATCH /projects/:id
 
 ```bash
 curl -X PATCH http://localhost:3721/projects/crawler-project \
+  -H "Cookie: dispatch_session=<session-token>" \
   -H "Content-Type: application/json" \
-  -d '{ "trustLevel": "audited" }'
+  -d '{ "verification": "audited" }'
 ```
 
 **Response:** `200 OK` -- Updated project object.

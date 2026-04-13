@@ -40,13 +40,13 @@ describe('API', () => {
         new Request('http://localhost/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: 'crawl', trustLevel: 'full' }),
+          body: JSON.stringify({ id: 'crawl', verification: 'none' }),
         }),
       )
       expect(res.status).toBe(201)
       const body = await res.json()
       expect(body.id).toBe('crawl')
-      expect(body.trustLevel).toBe('full')
+      expect(body.verification).toBe('none')
     })
 
     test('GET /projects lists projects', async () => {
@@ -63,12 +63,12 @@ describe('API', () => {
         new Request('http://localhost/projects/proj1', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trustLevel: 'audited' }),
+          body: JSON.stringify({ verification: 'audited' }),
         }),
       )
       expect(res.status).toBe(200)
       const body = await res.json()
-      expect(body.trustLevel).toBe('audited')
+      expect(body.verification).toBe('audited')
     })
 
     test('GET /projects/:id/stats returns counts', async () => {

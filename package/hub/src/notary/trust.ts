@@ -5,21 +5,21 @@ import { checkAndStoreNonce } from './nonce'
 
 export async function enforceReceipt(
   db: PrismaClient,
-  project: { id: string; trustLevel: string; receiptSecret: string | null },
+  project: { id: string; verification: string; receiptSecret: string | null },
   receipt: CompletionReceipt | undefined,
   taskIds: string[],
   workerId: string,
 ): Promise<void> {
-  if (project.trustLevel === 'full') {
+  if (project.verification === 'none') {
     // No verification needed
     return
   }
 
-  if (project.trustLevel === 'audited') {
+  if (project.verification === 'audited') {
     throw new ReceiptError('Audited projects must use POST /tasks/audit', 400)
   }
 
-  if (project.trustLevel === 'receipted') {
+  if (project.verification === 'receipted') {
     if (!receipt) {
       throw new ReceiptError('Receipt is required for receipted projects', 400)
     }

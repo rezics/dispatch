@@ -3,9 +3,8 @@ import type { PrismaClient } from '#/prisma/client'
 import { claimTasks } from '../queue/claim'
 import { renewLease } from '../queue/renew'
 import { completeTasks } from '../queue/complete'
-import { authMiddleware, requirePermission } from '../auth/middleware'
+import { workerAuth, requireProjectAccess } from '../auth/middleware'
 import type { AuthProvider } from '../auth/jwt'
-import { PERMISSIONS } from '../auth/permissions'
 import { enforceReceipt } from '../notary/trust'
 import { ReceiptError } from '../notary/receipt'
 import type { ResultPluginRunner } from '../plugin/runner'
@@ -15,16 +14,16 @@ export { type AuthProvider } from '../auth/jwt'
 
 export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], resultPluginRunner?: ResultPluginRunner) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
-    .use(authMiddleware(authProviders, db))
+    .use(workerAuth(authProviders, db))
     .post(
       '/claim',
-      async ({ body, identity, set }) => {
+      async ({ body, worker, set }) => {
         try {
-          requirePermission(identity, PERMISSIONS.TASK_CLAIM)
-          const project = identity.claims.project as string
+          const project = body.project
+          requireProjectAccess(worker, project)
           const tasks = await claimTasks(
             db,
-            identity.sub,
+            worker.sub,
             project,
             body.count,
             body.lease,
@@ -37,6 +36,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
       },
       {
         body: t.Object({
+          project: t.String(),
           count: t.Integer({ minimum: 1, maximum: 5000 }),
           lease: t.String(),
         }),
@@ -49,9 +49,9 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
     )
     .post(
       '/lease/renew',
-      async ({ body, identity, set }) => {
+      async ({ body, worker, set }) => {
         try {
-          await renewLease(db, body.taskIds, identity.sub, body.extend)
+          await renewLease(db, body.taskIds, worker.sub, body.extend)
           return { ok: true }
         } catch (err) {
           if ((err as Error).message === 'LEASE_EXPIRED') {
@@ -76,7 +76,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
     )
     .post(
       '/complete',
-      async ({ body, identity, set }) => {
+      async ({ body, worker, set }) => {
         try {
           const doneItems = body.done ?? []
           const failedItems = body.failed ?? []
@@ -85,13 +85,15 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
           if (doneItems.length > 0) {
             const taskIds = [...doneItems.map((d) => d.id), ...failedItems.map((f) => f.id)]
 
-            // Get the project from the first task to look up trust level
+            // Get the project from the first task to look up verification mode
             const firstTask = await db.task.findFirst({
               where: { id: { in: taskIds } },
               select: { project: true },
             })
 
             if (firstTask) {
+              requireProjectAccess(worker, firstTask.project)
+
               const project = await db.project.findUnique({
                 where: { id: firstTask.project },
               })
@@ -102,7 +104,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
                   project,
                   body.receipt as any,
                   doneItems.map((d) => d.id),
-                  identity.sub,
+                  worker.sub,
                 )
               }
             }

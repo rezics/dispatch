@@ -19,7 +19,7 @@ const cardStyle: CSSProperties = {
 
 interface Project {
   id: string
-  trustLevel: string
+  verification: string
   createdAt: string
 }
 
@@ -43,7 +43,7 @@ export function Plugins() {
             <div>
               <strong>{project.id}</strong>
               <span style={{ marginLeft: '8px', fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>
-                Trust: {project.trustLevel}
+                Verification: {project.verification}
               </span>
             </div>
           </div>

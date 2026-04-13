@@ -7,7 +7,7 @@ import { __nullable__ } from "./__nullable__";
 export const ProjectPlain = t.Object(
   {
     id: t.String(),
-    trustLevel: t.String(),
+    verification: t.String(),
     receiptSecret: __nullable__(t.String()),
     jwksUri: __nullable__(t.String()),
     createdAt: t.Date(),
@@ -62,7 +62,7 @@ export const ProjectRelations = t.Object(
 
 export const ProjectPlainInputCreate = t.Object(
   {
-    trustLevel: t.Optional(t.String()),
+    verification: t.Optional(t.String()),
     receiptSecret: t.Optional(__nullable__(t.String())),
     jwksUri: t.Optional(__nullable__(t.String())),
   },
@@ -71,7 +71,7 @@ export const ProjectPlainInputCreate = t.Object(
 
 export const ProjectPlainInputUpdate = t.Object(
   {
-    trustLevel: t.Optional(t.String()),
+    verification: t.Optional(t.String()),
     receiptSecret: t.Optional(__nullable__(t.String())),
     jwksUri: t.Optional(__nullable__(t.String())),
   },
@@ -183,7 +183,7 @@ export const ProjectWhere = t.Partial(
           NOT: t.Union([Self, t.Array(Self, { additionalProperties: false })]),
           OR: t.Array(Self, { additionalProperties: false }),
           id: t.String(),
-          trustLevel: t.String(),
+          verification: t.String(),
           receiptSecret: t.String(),
           jwksUri: t.String(),
           createdAt: t.Date(),
@@ -223,7 +223,7 @@ export const ProjectWhereUnique = t.Recursive(
           t.Object(
             {
               id: t.String(),
-              trustLevel: t.String(),
+              verification: t.String(),
               receiptSecret: t.String(),
               jwksUri: t.String(),
               createdAt: t.Date(),
@@ -241,7 +241,7 @@ export const ProjectSelect = t.Partial(
   t.Object(
     {
       id: t.Boolean(),
-      trustLevel: t.Boolean(),
+      verification: t.Boolean(),
       receiptSecret: t.Boolean(),
       jwksUri: t.Boolean(),
       createdAt: t.Boolean(),
@@ -266,7 +266,7 @@ export const ProjectOrderBy = t.Partial(
       id: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
-      trustLevel: t.Union([t.Literal("asc"), t.Literal("desc")], {
+      verification: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       receiptSecret: t.Union([t.Literal("asc"), t.Literal("desc")], {

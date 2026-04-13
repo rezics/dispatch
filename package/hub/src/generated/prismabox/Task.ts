@@ -30,7 +30,7 @@ export const TaskRelations = t.Object(
     projectRef: t.Object(
       {
         id: t.String(),
-        trustLevel: t.String(),
+        verification: t.String(),
         receiptSecret: __nullable__(t.String()),
         jwksUri: __nullable__(t.String()),
         createdAt: t.Date(),

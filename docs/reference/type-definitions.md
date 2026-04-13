@@ -56,7 +56,7 @@ interface DispatchPlugin<TConfig = unknown> {
   config: ZodType<TConfig>
   displayName?: string
   description?: string
-  trust?: TrustLevel
+  trust?: VerificationMode
   mode?: 'http' | 'ws'
   onLoad?: (ctx: PluginContext<TConfig>) => Promise<void>
   onUnload?: (ctx: PluginContext<TConfig>) => Promise<void>
@@ -95,10 +95,10 @@ interface Logger {
 }
 ```
 
-### `TrustLevel`
+### `VerificationMode`
 
 ```typescript
-type TrustLevel = 'full' | 'receipted' | 'audited'
+type VerificationMode = 'none' | 'receipted' | 'audited'
 ```
 
 ## Message Types
@@ -159,54 +159,40 @@ See [Trust & Verification](/guide/trust-and-verification) for usage details.
 
 ## Auth Types
 
-### `ResolvedIdentity`
+### `AdminSession`
 
-Returned by the auth middleware after resolving a JWT or session into a set of permissions.
+Produced by the admin auth middleware after verifying a root user's session cookie.
 
 ```typescript
-interface ResolvedIdentity {
-  sub: string
+interface AdminSession {
+  userId: string
   isRoot: boolean
-  permissions: string[]
+}
+```
+
+### `WorkerIdentity`
+
+Produced by the worker auth middleware after verifying a JWT and resolving project access.
+
+```typescript
+interface WorkerIdentity {
+  sub: string
   projects: string[] | '*'
-  claims: Record<string, unknown>
 }
 ```
 
-### `Permissions`
+### `AccessPolicy`
 
 ```typescript
-const PERMISSIONS = {
-  WORKER_REGISTER:     'worker:register',
-  WORKER_UNREGISTER:   'worker:unregister',
-  TASK_CLAIM:          'task:claim',
-  TASK_COMPLETE:       'task:complete',
-  DASHBOARD_VIEW:      'dashboard:view',
-  DASHBOARD_PROJECTS:  'dashboard:projects',
-  DASHBOARD_WORKERS:   'dashboard:workers',
-  DASHBOARD_TASKS:     'dashboard:tasks',
-  DASHBOARD_POLICIES:  'dashboard:policies',
-  ADMIN_USERS:         'admin:users',
-  ADMIN_POLICIES:      'admin:policies',
-  ADMIN_ALL:           'admin:*',
-}
-```
-
-Wildcard permissions (e.g., `admin:*`) match any permission sharing the same prefix.
-
-### `TrustPolicy`
-
-```typescript
-interface TrustPolicy {
+interface AccessPolicy {
   id: string
-  issPattern: string      // Glob pattern for JWT issuer
-  claimField: string      // JWT claim to extract
-  claimPattern: string    // Regex to test claim value
-  permissions: string[]   // Granted permissions
-  projectScope: string | null  // Optional project restriction
+  issPattern: string           // Glob pattern for JWT issuer
+  claimField: string           // JWT claim to extract
+  claimPattern: string         // Regex to test claim value
+  projectScope: string | null  // Literal project ID, or null for global access
   createdBy: string
   createdAt: Date
 }
 ```
 
-See [Trust Policies API](/api/policies) for CRUD operations.
+See [Access Policies API](/api/policies) for CRUD operations.

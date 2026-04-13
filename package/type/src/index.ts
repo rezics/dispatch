@@ -2,7 +2,7 @@ export type { Task, TaskStatus, TaskResult } from './task'
 export type {
   DispatchPlugin,
   PluginContext,
-  TrustLevel,
+  VerificationMode,
   Logger,
   PluginHandler,
 } from './plugin'

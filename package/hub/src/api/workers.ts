@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
+import { adminAuth } from '../auth/middleware'
 
 export const workersRoutes = (db: PrismaClient) =>
   new Elysia({ prefix: '/workers', tags: ['Workers'] })
@@ -38,6 +39,8 @@ export const workersRoutes = (db: PrismaClient) =>
         },
       },
     )
+    // Admin-only deletion
+    .use(adminAuth(db))
     .delete(
       '/:id',
       async ({ params, set }) => {
@@ -53,7 +56,8 @@ export const workersRoutes = (db: PrismaClient) =>
         params: t.Object({ id: t.String() }),
         detail: {
           summary: 'Remove worker',
-          description: 'Force disconnect a worker. Active tasks will be reclaimed by the reaper.',
+          description: 'Force disconnect a worker (admin only). Active tasks will be reclaimed by the reaper.',
+          security: [{ Bearer: [] }],
         },
       },
     )

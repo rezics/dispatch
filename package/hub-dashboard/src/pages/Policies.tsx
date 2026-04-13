@@ -52,7 +52,6 @@ interface Policy {
   issPattern: string
   claimField: string
   claimPattern: string
-  permissions: string[]
   projectScope: string | null
   createdBy: string
   createdAt: string
@@ -65,7 +64,6 @@ export function Policies() {
     issPattern: '',
     claimField: '',
     claimPattern: '',
-    permissions: '',
     projectScope: '',
   })
 
@@ -88,7 +86,6 @@ export function Policies() {
           issPattern: data.issPattern,
           claimField: data.claimField,
           claimPattern: data.claimPattern,
-          permissions: data.permissions.split(',').map((s) => s.trim()).filter(Boolean),
           projectScope: data.projectScope || undefined,
         }),
       })
@@ -98,7 +95,7 @@ export function Policies() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['policies'] })
       setShowForm(false)
-      setForm({ issPattern: '', claimField: '', claimPattern: '', permissions: '', projectScope: '' })
+      setForm({ issPattern: '', claimField: '', claimPattern: '', projectScope: '' })
     },
   })
 
@@ -119,7 +116,7 @@ export function Policies() {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h1 style={{ margin: 0, fontSize: '20px', color: 'var(--dispatch-text-primary)', fontFamily: 'var(--dispatch-font-family)' }}>
-          Trust Policies
+          Access Policies
         </h1>
         <button style={btnStyle} onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Cancel' : 'New Policy'}
@@ -153,12 +150,8 @@ export function Policies() {
             <input style={inputStyle} value={form.claimPattern} onChange={(e) => setForm({ ...form, claimPattern: e.target.value })} placeholder="^owner$" required />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Permissions (comma-separated)</label>
-            <input style={inputStyle} value={form.permissions} onChange={(e) => setForm({ ...form, permissions: e.target.value })} placeholder="admin:*, dashboard:*" required />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Project Scope (optional claim field)</label>
-            <input style={inputStyle} value={form.projectScope} onChange={(e) => setForm({ ...form, projectScope: e.target.value })} placeholder="project" />
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Project Scope (optional project ID)</label>
+            <input style={inputStyle} value={form.projectScope} onChange={(e) => setForm({ ...form, projectScope: e.target.value })} placeholder="my-project" />
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button type="submit" style={btnStyle} disabled={createMutation.isPending}>
@@ -178,7 +171,6 @@ export function Policies() {
                 <th style={thStyle}>Issuer Pattern</th>
                 <th style={thStyle}>Claim Field</th>
                 <th style={thStyle}>Claim Pattern</th>
-                <th style={thStyle}>Permissions</th>
                 <th style={thStyle}>Project Scope</th>
                 <th style={thStyle}>Actions</th>
               </tr>
@@ -189,7 +181,6 @@ export function Policies() {
                   <td style={tdStyle}><code>{p.issPattern}</code></td>
                   <td style={tdStyle}><code>{p.claimField}</code></td>
                   <td style={tdStyle}><code>{p.claimPattern}</code></td>
-                  <td style={tdStyle}>{p.permissions.join(', ')}</td>
                   <td style={tdStyle}>{p.projectScope ?? '(global)'}</td>
                   <td style={tdStyle}>
                     <button
@@ -203,8 +194,8 @@ export function Policies() {
               ))}
               {(!policies || policies.length === 0) && (
                 <tr>
-                  <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--dispatch-text-secondary)' }}>
-                    No trust policies configured
+                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'center', color: 'var(--dispatch-text-secondary)' }}>
+                    No access policies configured
                   </td>
                 </tr>
               )}

@@ -8,7 +8,7 @@ export type {
   Logger,
   Task,
   TaskResult,
-  TrustLevel,
+  VerificationMode,
   WorkerMessage,
   HubMessage,
   CompletionReceipt,

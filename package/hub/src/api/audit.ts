@@ -14,9 +14,9 @@ export const auditRoutes = (db: PrismaClient) =>
           return { error: 'Project not found' }
         }
 
-        if (project.trustLevel !== 'audited') {
+        if (project.verification !== 'audited') {
           set.status = 400
-          return { error: 'POST /tasks/audit is only for audited trust level projects' }
+          return { error: 'POST /tasks/audit is only for audited verification projects' }
         }
 
         if (!project.receiptSecret) {

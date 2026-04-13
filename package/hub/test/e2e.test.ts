@@ -48,7 +48,7 @@ beforeEach(async () => {
 describe('e2e: full task lifecycle', () => {
   test('create project → create tasks → verify status transitions', async () => {
     // 1. Create project
-    const projRes = await post('/projects', { id: 'e2e-test', trustLevel: 'full' })
+    const projRes = await post('/projects', { id: 'e2e-test', verification: 'none' })
     expect(projRes.status).toBe(201)
 
     // 2. Create tasks

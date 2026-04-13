@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod'
 import type { Task, TaskResult } from './task'
 
-export type TrustLevel = 'full' | 'receipted' | 'audited'
+export type VerificationMode = 'none' | 'receipted' | 'audited'
 
 export interface Logger {
   info(message: string, ...args: unknown[]): void
@@ -28,7 +28,7 @@ export interface DispatchPlugin<TConfig = unknown> {
   config: ZodType<TConfig>
   displayName?: string
   description?: string
-  trust?: TrustLevel
+  trust?: VerificationMode
   mode?: 'http' | 'ws'
   onLoad?: (ctx: PluginContext<TConfig>) => Promise<void>
   onUnload?: (ctx: PluginContext<TConfig>) => Promise<void>

@@ -43,17 +43,6 @@ const buttonStyle: CSSProperties = {
   cursor: 'pointer',
 }
 
-const linkStyle: CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'var(--dispatch-text-secondary)',
-  fontSize: '13px',
-  cursor: 'pointer',
-  padding: 0,
-  fontFamily: 'var(--dispatch-font-family)',
-  textDecoration: 'underline',
-}
-
 const labelStyle: CSSProperties = {
   display: 'block',
   fontSize: '13px',
@@ -61,14 +50,10 @@ const labelStyle: CSSProperties = {
   marginBottom: '4px',
 }
 
-type LoginMode = 'password' | 'token'
-
 export function Login() {
-  const { loginWithPassword, loginWithToken } = useAuth()
-  const [mode, setMode] = useState<LoginMode>('password')
+  const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [token, setToken] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -78,11 +63,7 @@ export function Login() {
     setLoading(true)
 
     try {
-      if (mode === 'password') {
-        await loginWithPassword(username.trim(), password)
-      } else {
-        await loginWithToken(token.trim())
-      }
+      await login(username.trim(), password)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -90,8 +71,7 @@ export function Login() {
     }
   }
 
-  const canSubmit =
-    mode === 'password' ? username.trim() && password : token.trim()
+  const canSubmit = username.trim() && password
 
   return (
     <div style={containerStyle}>
@@ -112,45 +92,31 @@ export function Login() {
             color: 'var(--dispatch-text-secondary)',
           }}
         >
-          {mode === 'password' ? 'Sign in to the dashboard' : 'Sign in with a JWT token'}
+          Sign in to the dashboard
         </p>
         <form onSubmit={handleSubmit}>
-          {mode === 'password' ? (
-            <>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="root user ID"
-                  autoComplete="username"
-                  style={inputStyle}
-                />
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
-                  autoComplete="current-password"
-                  style={inputStyle}
-                />
-              </div>
-            </>
-          ) : (
-            <div style={{ marginBottom: '16px' }}>
-              <textarea
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="Paste your JWT token here..."
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-              />
-            </div>
-          )}
+          <div style={{ marginBottom: '12px' }}>
+            <label style={labelStyle}>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="root user ID"
+              autoComplete="username"
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="password"
+              autoComplete="current-password"
+              style={inputStyle}
+            />
+          </div>
           {error && (
             <p style={{ color: 'var(--dispatch-error, #ef4444)', fontSize: '13px', margin: '0 0 12px' }}>
               {error}
@@ -160,15 +126,6 @@ export function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <button
-            type="button"
-            onClick={() => { setMode(mode === 'password' ? 'token' : 'password'); setError('') }}
-            style={linkStyle}
-          >
-            {mode === 'password' ? 'Use JWT token instead' : 'Use password instead'}
-          </button>
-        </div>
       </div>
     </div>
   )
