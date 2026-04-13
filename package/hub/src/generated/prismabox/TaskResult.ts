@@ -25,6 +25,7 @@ export const TaskResultRelations = t.Object(
         scheduledAt: t.Date(),
         startedAt: __nullable__(t.Date()),
         leaseExpiresAt: __nullable__(t.Date()),
+        maxHoldExpiresAt: __nullable__(t.Date()),
         finishedAt: __nullable__(t.Date()),
         error: __nullable__(t.String()),
         createdAt: t.Date(),

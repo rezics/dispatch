@@ -9,22 +9,28 @@ export function parseInterval(interval: string): number {
 export async function reap(db: PrismaClient) {
   const now = new Date()
 
-  // Reset retryable expired tasks
+  // Reset retryable expired tasks (lease expired or max hold time exceeded)
   await db.$executeRaw`
     UPDATE "Task"
-    SET "status" = 'pending', "workerId" = NULL, "leaseExpiresAt" = NULL, "startedAt" = NULL
+    SET "status" = 'pending', "workerId" = NULL, "leaseExpiresAt" = NULL, "maxHoldExpiresAt" = NULL, "startedAt" = NULL
     WHERE "status" = 'running'
-      AND "leaseExpiresAt" < ${now}
       AND "attempts" < "maxAttempts"
+      AND (
+        "leaseExpiresAt" < ${now}
+        OR ("maxHoldExpiresAt" IS NOT NULL AND "maxHoldExpiresAt" < ${now})
+      )
   `
 
-  // Fail exhausted expired tasks
+  // Fail exhausted expired tasks (lease expired or max hold time exceeded)
   await db.$executeRaw`
     UPDATE "Task"
-    SET "status" = 'failed', "finishedAt" = ${now}, "error" = 'Lease expired (max attempts exhausted)', "workerId" = NULL, "leaseExpiresAt" = NULL
+    SET "status" = 'failed', "finishedAt" = ${now}, "error" = 'Lease expired (max attempts exhausted)', "workerId" = NULL, "leaseExpiresAt" = NULL, "maxHoldExpiresAt" = NULL
     WHERE "status" = 'running'
-      AND "leaseExpiresAt" < ${now}
       AND "attempts" >= "maxAttempts"
+      AND (
+        "leaseExpiresAt" < ${now}
+        OR ("maxHoldExpiresAt" IS NOT NULL AND "maxHoldExpiresAt" < ${now})
+      )
   `
 
   // Clean expired nonces

@@ -76,6 +76,75 @@ describe('reaper', () => {
     expect(updated.error).toBeTruthy()
   })
 
+  test('max hold exceeded with retries remaining resets to pending', async () => {
+    const task = await db.task.create({
+      data: {
+        project: 'test-project',
+        type: 'x',
+        payload: {},
+        status: 'running',
+        workerId: 'w1',
+        attempts: 1,
+        maxAttempts: 3,
+        leaseExpiresAt: new Date(Date.now() + 300000), // lease still valid
+        maxHoldExpiresAt: new Date(Date.now() - 60000), // but max hold exceeded
+        startedAt: new Date(Date.now() - 120000),
+      },
+    })
+
+    await reap(db)
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    expect(updated.status).toBe('pending')
+    expect(updated.workerId).toBeNull()
+    expect(updated.maxHoldExpiresAt).toBeNull()
+  })
+
+  test('max hold exceeded with no retries left is failed', async () => {
+    const task = await db.task.create({
+      data: {
+        project: 'test-project',
+        type: 'x',
+        payload: {},
+        status: 'running',
+        workerId: 'w1',
+        attempts: 3,
+        maxAttempts: 3,
+        leaseExpiresAt: new Date(Date.now() + 300000), // lease still valid
+        maxHoldExpiresAt: new Date(Date.now() - 60000), // but max hold exceeded
+        startedAt: new Date(Date.now() - 120000),
+      },
+    })
+
+    await reap(db)
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    expect(updated.status).toBe('failed')
+    expect(updated.error).toBeTruthy()
+  })
+
+  test('null maxHoldExpiresAt is not reclaimed by max hold check', async () => {
+    const task = await db.task.create({
+      data: {
+        project: 'test-project',
+        type: 'x',
+        payload: {},
+        status: 'running',
+        workerId: 'w1',
+        attempts: 1,
+        maxAttempts: 3,
+        leaseExpiresAt: new Date(Date.now() + 300000), // lease still valid
+        maxHoldExpiresAt: null,
+        startedAt: new Date(Date.now() - 120000),
+      },
+    })
+
+    await reap(db)
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    expect(updated.status).toBe('running')
+  })
+
   test('expired nonces are purged', async () => {
     await db.usedNonce.create({
       data: {

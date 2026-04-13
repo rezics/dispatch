@@ -32,6 +32,7 @@ const makeTask = (id: string, type = 'test:run'): Task => ({
   scheduledAt: new Date(),
   startedAt: new Date(),
   leaseExpiresAt: new Date(Date.now() + 300_000),
+  maxHoldExpiresAt: null,
   finishedAt: null,
   error: null,
   createdAt: new Date(),
@@ -68,7 +69,7 @@ describe('LeaseManager', () => {
 
   test('tracks active task count', () => {
     manager = new LeaseManager(
-      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 5000, shutdownTimeout: 5000 },
+      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 5000, shutdownTimeout: 5000, heartbeatInterval: 60000 },
       tokenManager,
       registry,
       noopLogger,
@@ -79,7 +80,7 @@ describe('LeaseManager', () => {
 
   test('respects concurrency limit', () => {
     manager = new LeaseManager(
-      { hubUrl: 'http://localhost:3721', concurrency: 5, pollInterval: 5000, shutdownTimeout: 5000 },
+      { hubUrl: 'http://localhost:3721', concurrency: 5, pollInterval: 5000, shutdownTimeout: 5000, heartbeatInterval: 60000 },
       tokenManager,
       registry,
       noopLogger,
@@ -95,7 +96,7 @@ describe('LeaseManager', () => {
     globalThis.fetch = mock(async () => new Response(JSON.stringify({ tasks: [], count: 0 }))) as any
 
     manager = new LeaseManager(
-      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 100, shutdownTimeout: 1000 },
+      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 100, shutdownTimeout: 1000, heartbeatInterval: 60000 },
       tokenManager,
       registry,
       noopLogger,
@@ -110,6 +111,107 @@ describe('LeaseManager', () => {
 
     await manager.stop()
     expect(manager.isRunning).toBe(false)
+
+    globalThis.fetch = originalFetch
+  })
+
+  test('heartbeat fires at configured interval', async () => {
+    const originalFetch = globalThis.fetch
+    const calls: string[] = []
+
+    globalThis.fetch = mock(async (url: string) => {
+      calls.push(url)
+      if (url.includes('/workers/heartbeat')) {
+        return new Response(JSON.stringify({ extended: 1 }))
+      }
+      // Return a task so we have active tasks for heartbeat to fire
+      if (url.includes('/tasks/claim')) {
+        return new Response(JSON.stringify({
+          tasks: [makeTask('t1')],
+          count: 1,
+        }))
+      }
+      if (url.includes('/tasks/complete')) {
+        return new Response(JSON.stringify({ ok: true }))
+      }
+      return new Response(JSON.stringify({}))
+    }) as any
+
+    manager = new LeaseManager(
+      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 5000, shutdownTimeout: 1000, heartbeatInterval: 100 },
+      tokenManager,
+      registry,
+      noopLogger,
+    )
+
+    manager.start()
+
+    // Wait for heartbeat to fire
+    await new Promise((r) => setTimeout(r, 350))
+
+    await manager.stop()
+
+    const heartbeatCalls = calls.filter((u) => u.includes('/workers/heartbeat'))
+    expect(heartbeatCalls.length).toBeGreaterThanOrEqual(1)
+
+    globalThis.fetch = originalFetch
+  })
+
+  test('heartbeat stops cleanly on stop()', async () => {
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = mock(async () => new Response(JSON.stringify({ tasks: [], count: 0 }))) as any
+
+    manager = new LeaseManager(
+      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 100, shutdownTimeout: 1000, heartbeatInterval: 100 },
+      tokenManager,
+      registry,
+      noopLogger,
+    )
+
+    manager.start()
+    await new Promise((r) => setTimeout(r, 50))
+    await manager.stop()
+
+    // No heartbeat should fire after stop
+    expect(manager.isRunning).toBe(false)
+
+    globalThis.fetch = originalFetch
+  })
+
+  test('heartbeat failure logs warning', async () => {
+    const originalFetch = globalThis.fetch
+    const warnings: string[] = []
+    const logger: Logger = {
+      ...noopLogger,
+      warn: (msg) => warnings.push(msg),
+      error: (msg) => warnings.push(msg),
+    }
+
+    globalThis.fetch = mock(async (url: string) => {
+      if (url.includes('/workers/heartbeat')) {
+        return new Response('error', { status: 500 })
+      }
+      if (url.includes('/tasks/claim')) {
+        return new Response(JSON.stringify({
+          tasks: [makeTask('t1')],
+          count: 1,
+        }))
+      }
+      return new Response(JSON.stringify({ ok: true }))
+    }) as any
+
+    manager = new LeaseManager(
+      { hubUrl: 'http://localhost:3721', concurrency: 10, pollInterval: 5000, shutdownTimeout: 1000, heartbeatInterval: 50 },
+      tokenManager,
+      registry,
+      logger,
+    )
+
+    manager.start()
+    await new Promise((r) => setTimeout(r, 250))
+    await manager.stop()
+
+    expect(warnings.length).toBeGreaterThan(0)
 
     globalThis.fetch = originalFetch
   })

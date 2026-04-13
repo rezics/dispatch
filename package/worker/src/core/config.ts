@@ -1,28 +1,40 @@
 import { z } from 'zod'
-import type { DispatchPlugin } from '@rezics/dispatch-type'
+import type { DispatchPlugin, Logger } from '@rezics/dispatch-type'
 
 const workerConfigSchema = z.object({
   hub: z.object({
     url: z.string().url('hub.url must be a valid URL'),
     getToken: z.custom<() => Promise<string>>((val) => typeof val === 'function'),
   }),
-  mode: z.enum(['http', 'ws']).default('http'),
+  mode: z.enum(['http', 'ws', 'single-run']).default('http'),
   concurrency: z.number().int().min(1).default(10),
   pollInterval: z.number().int().min(1000).default(5000),
   shutdownTimeout: z.number().int().min(0).default(30000),
+  heartbeatInterval: z.number().int().min(5000).default(60000),
   plugin: z.array(z.tuple([z.any(), z.any()])).default([]),
-})
+  logger: z.custom<Logger>().optional(),
+  // Single-run specific
+  timeout: z.number().int().min(1000).optional(),
+  claimCount: z.number().int().min(1).optional(),
+}).refine(
+  (data) => data.mode !== 'single-run' || data.timeout !== undefined,
+  { message: 'timeout is required for single-run mode', path: ['timeout'] },
+)
 
 export type WorkerConfigInput = {
   hub: {
     url: string
     getToken: () => Promise<string>
   }
-  mode?: 'http' | 'ws'
+  mode?: 'http' | 'ws' | 'single-run'
   concurrency?: number
   pollInterval?: number
   shutdownTimeout?: number
+  heartbeatInterval?: number
   plugin?: [DispatchPlugin<any>, unknown][]
+  logger?: Logger
+  timeout?: number
+  claimCount?: number
 }
 
 export interface WorkerConfig {
@@ -30,11 +42,15 @@ export interface WorkerConfig {
     url: string
     getToken: () => Promise<string>
   }
-  mode: 'http' | 'ws'
+  mode: 'http' | 'ws' | 'single-run'
   concurrency: number
   pollInterval: number
   shutdownTimeout: number
+  heartbeatInterval: number
   plugins: Array<{ plugin: DispatchPlugin<any>; config: unknown }>
+  logger?: Logger
+  timeout?: number
+  claimCount?: number
 }
 
 export function defineWorkerConfig(input: WorkerConfigInput): WorkerConfig {
@@ -61,10 +77,14 @@ export function defineWorkerConfig(input: WorkerConfigInput): WorkerConfig {
       url,
       getToken: parsed.hub.getToken as () => Promise<string>,
     },
-    mode: parsed.mode as 'http' | 'ws',
+    mode: parsed.mode as 'http' | 'ws' | 'single-run',
     concurrency: parsed.concurrency as number,
     pollInterval: parsed.pollInterval as number,
     shutdownTimeout: parsed.shutdownTimeout as number,
+    heartbeatInterval: parsed.heartbeatInterval as number,
     plugins,
+    logger: parsed.logger as Logger | undefined,
+    timeout: parsed.timeout as number | undefined,
+    claimCount: parsed.claimCount as number | undefined,
   }
 }

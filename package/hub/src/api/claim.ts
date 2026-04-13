@@ -12,6 +12,38 @@ import type { ResultPluginRunner } from '../plugin/runner'
 // Re-export for convenience
 export { type AuthProvider } from '../auth/jwt'
 
+export const heartbeatRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
+  new Elysia({ prefix: '/workers', tags: ['Workers'] })
+    .use(workerAuth(authProviders, db))
+    .post(
+      '/heartbeat',
+      async ({ body, worker, set }) => {
+        try {
+          const result: { count: bigint }[] = await db.$queryRaw`
+            UPDATE "Task"
+            SET "leaseExpiresAt" = NOW() + INTERVAL '180 seconds'
+            WHERE "workerId" = ${body.workerId}
+              AND "status" = 'running'
+            RETURNING 1
+          `
+          return { extended: result.length }
+        } catch (err) {
+          set.status = 400
+          return { error: (err as Error).message }
+        }
+      },
+      {
+        body: t.Object({
+          workerId: t.String(),
+        }),
+        detail: {
+          summary: 'Worker heartbeat',
+          description: 'Extend leases for all tasks held by a worker',
+          security: [{ Bearer: [] }],
+        },
+      },
+    )
+
 export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], resultPluginRunner?: ResultPluginRunner) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
     .use(workerAuth(authProviders, db))

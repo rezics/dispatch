@@ -17,6 +17,24 @@ export const projectsRoutes = (db: PrismaClient) =>
       },
     )
     .get(
+      '/:id',
+      async ({ params, set }) => {
+        const project = await db.project.findUnique({ where: { id: params.id } })
+        if (!project) {
+          set.status = 404
+          return { error: 'Project not found' }
+        }
+        return project
+      },
+      {
+        params: t.Object({ id: t.String() }),
+        detail: {
+          summary: 'Get project',
+          description: 'Retrieve a project by ID',
+        },
+      },
+    )
+    .get(
       '/:id/stats',
       async ({ params, set }) => {
         const project = await db.project.findUnique({ where: { id: params.id } })
@@ -57,6 +75,7 @@ export const projectsRoutes = (db: PrismaClient) =>
           verification: t.Optional(t.String()),
           receiptSecret: t.Optional(t.String()),
           jwksUri: t.Optional(t.String()),
+          maxTaskHoldTime: t.Optional(t.Nullable(t.Integer({ minimum: 1 }))),
         }),
         detail: {
           summary: 'Create project',
@@ -85,6 +104,7 @@ export const projectsRoutes = (db: PrismaClient) =>
           verification: t.Optional(t.String()),
           receiptSecret: t.Optional(t.String()),
           jwksUri: t.Optional(t.String()),
+          maxTaskHoldTime: t.Optional(t.Nullable(t.Integer({ minimum: 1 }))),
         }),
         detail: {
           summary: 'Update project',

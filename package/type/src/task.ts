@@ -13,6 +13,7 @@ export interface Task {
   scheduledAt: Date
   startedAt: Date | null
   leaseExpiresAt: Date | null
+  maxHoldExpiresAt: Date | null
   finishedAt: Date | null
   error: string | null
   createdAt: Date

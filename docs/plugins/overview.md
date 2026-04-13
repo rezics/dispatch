@@ -1,10 +1,19 @@
 # Plugin Overview
 
-Plugins are the core mechanism for defining task handlers in Dispatch. Each plugin declares a set of **capabilities** (task types it can handle) and provides a **handler function** for each capability.
+Dispatch has two distinct plugin systems:
 
-## What is a Plugin?
+- **Worker plugins** (also called "task handler modules") run on the worker and define how tasks are processed. Each worker plugin declares capabilities and provides handler functions. This is the primary plugin system documented on this page.
+- **Hub result plugins** run on the hub server and determine what happens to completed task results (store in database, send via webhook, forward to a custom handler). See [Result Strategies](/plugins/result-strategies) for details.
 
-A plugin is a TypeScript object that:
+These are completely independent systems. Worker plugins handle task execution; hub result plugins process completed task results.
+
+## Worker Plugins
+
+Worker plugins are the core mechanism for defining task handlers in Dispatch. Each plugin declares a set of **capabilities** (task types it can handle) and provides a **handler function** for each capability.
+
+## What is a Worker Plugin?
+
+A worker plugin is a TypeScript object that:
 
 1. Declares which task types it can handle (capabilities).
 2. Defines a Zod schema for its configuration.

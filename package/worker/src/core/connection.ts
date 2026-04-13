@@ -1,4 +1,4 @@
-import type { Task, TaskResult, HubMessage, WorkerMessage, Logger } from '@rezics/dispatch-type'
+import type { Task, TaskResult, HubMessage, WorkerMessage, Logger, ActiveTaskInfo } from '@rezics/dispatch-type'
 import type { TokenManager } from './auth'
 import type { PluginRegistry } from './registry'
 
@@ -19,6 +19,7 @@ export class WsConnection {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private activeTasks = new Map<string, AbortController>()
+  private activeTaskMeta = new Map<string, { type: string; startedAt: Date; progress: number | null }>()
 
   constructor(
     config: ConnectionConfig,
@@ -38,6 +39,15 @@ export class WsConnection {
 
   get isRunning(): boolean {
     return this.running
+  }
+
+  getActiveTasks(): ActiveTaskInfo[] {
+    return Array.from(this.activeTaskMeta.entries()).map(([taskId, meta]) => ({
+      taskId,
+      type: meta.type,
+      startedAt: meta.startedAt,
+      progress: meta.progress,
+    }))
   }
 
   async start(): Promise<void> {
@@ -157,8 +167,11 @@ export class WsConnection {
   private handleTaskDispatch(task: Task): void {
     const controller = new AbortController()
     this.activeTasks.set(task.id, controller)
+    this.activeTaskMeta.set(task.id, { type: task.type, startedAt: new Date(), progress: null })
 
     const progressFn = async (percent: number, message?: string) => {
+      const meta = this.activeTaskMeta.get(task.id)
+      if (meta) meta.progress = percent
       this.send({
         type: 'task:progress',
         taskId: task.id,
@@ -186,6 +199,7 @@ export class WsConnection {
       })
       .finally(() => {
         this.activeTasks.delete(task.id)
+        this.activeTaskMeta.delete(task.id)
       })
   }
 
@@ -194,6 +208,7 @@ export class WsConnection {
     if (controller) {
       controller.abort()
       this.activeTasks.delete(taskId)
+      this.activeTaskMeta.delete(taskId)
       this.send({
         type: 'task:fail',
         taskId,

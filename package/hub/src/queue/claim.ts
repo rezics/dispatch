@@ -26,25 +26,40 @@ export async function claimTasks(
 
   const leaseSeconds = parseLeaseDuration(lease)
 
-  const tasks: { id: string }[] = await db.$queryRaw`
-    UPDATE "Task"
+  // Look up project's maxTaskHoldTime
+  const proj = await db.project.findUnique({
+    where: { id: project },
+    select: { maxTaskHoldTime: true },
+  })
+
+  const holdTimeExpr = proj?.maxTaskHoldTime
+    ? `NOW() + INTERVAL '${proj.maxTaskHoldTime} seconds'`
+    : 'NULL'
+
+  const tasks: { id: string }[] = await db.$queryRawUnsafe(
+    `UPDATE "Task"
     SET
       "status" = 'running',
-      "workerId" = ${workerId},
+      "workerId" = $1,
       "startedAt" = NOW(),
-      "leaseExpiresAt" = NOW() + ${`${leaseSeconds} seconds`}::interval,
+      "leaseExpiresAt" = NOW() + $2::interval,
+      "maxHoldExpiresAt" = ${holdTimeExpr},
       "attempts" = "attempts" + 1
     WHERE "id" IN (
       SELECT "id" FROM "Task"
-      WHERE "project" = ${project}
+      WHERE "project" = $3
         AND "status" = 'pending'
         AND "scheduledAt" <= NOW()
       ORDER BY "priority" DESC, "scheduledAt" ASC
-      LIMIT ${count}
+      LIMIT $4
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING "id"
-  `
+    RETURNING "id"`,
+    workerId,
+    `${leaseSeconds} seconds`,
+    project,
+    count,
+  )
 
   if (tasks.length === 0) return []
 

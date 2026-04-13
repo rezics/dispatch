@@ -116,4 +116,63 @@ describe('queue', () => {
       'exceeds maximum',
     )
   })
+
+  test('claim sets maxHoldExpiresAt when project has maxTaskHoldTime', async () => {
+    await db.project.update({
+      where: { id: 'test-project' },
+      data: { maxTaskHoldTime: 3600 },
+    })
+    await createTask(db, { project: 'test-project', type: 'x', payload: {} })
+
+    const claimed = await claimTasks(db, 'w1', 'test-project', 1, '300s')
+    expect(claimed.length).toBe(1)
+    expect(claimed[0].maxHoldExpiresAt).not.toBeNull()
+
+    const diff = claimed[0].maxHoldExpiresAt!.getTime() - Date.now()
+    // Should be roughly 3600s from now (within 10s tolerance)
+    expect(diff).toBeGreaterThan(3590 * 1000)
+    expect(diff).toBeLessThan(3610 * 1000)
+  })
+
+  test('claim leaves maxHoldExpiresAt null when project has no maxTaskHoldTime', async () => {
+    await createTask(db, { project: 'test-project', type: 'x', payload: {} })
+
+    const claimed = await claimTasks(db, 'w1', 'test-project', 1, '300s')
+    expect(claimed.length).toBe(1)
+    expect(claimed[0].maxHoldExpiresAt).toBeNull()
+  })
+})
+
+describe('heartbeat', () => {
+  test('heartbeat extends leases for running tasks', async () => {
+    await createTask(db, { project: 'test-project', type: 'x', payload: {} })
+    await claimTasks(db, 'w1', 'test-project', 1, '60s')
+
+    const before = await db.task.findFirst({ where: { workerId: 'w1', status: 'running' } })
+    expect(before).not.toBeNull()
+
+    // Simulate heartbeat by extending leases
+    const result: { id: string }[] = await db.$queryRaw`
+      UPDATE "Task"
+      SET "leaseExpiresAt" = NOW() + INTERVAL '180 seconds'
+      WHERE "workerId" = 'w1'
+        AND "status" = 'running'
+      RETURNING "id"
+    `
+    expect(result.length).toBe(1)
+
+    const after = await db.task.findFirst({ where: { workerId: 'w1', status: 'running' } })
+    expect(after!.leaseExpiresAt!.getTime()).toBeGreaterThan(before!.leaseExpiresAt!.getTime())
+  })
+
+  test('heartbeat with no active tasks extends zero', async () => {
+    const result: { id: string }[] = await db.$queryRaw`
+      UPDATE "Task"
+      SET "leaseExpiresAt" = NOW() + INTERVAL '180 seconds'
+      WHERE "workerId" = 'w1'
+        AND "status" = 'running'
+      RETURNING "id"
+    `
+    expect(result.length).toBe(0)
+  })
 })

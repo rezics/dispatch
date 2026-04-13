@@ -26,6 +26,18 @@ export class TokenManager {
     return this.token
   }
 
+  workerId(): string {
+    const token = this.current()
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) throw new Error('Invalid JWT')
+      const payload = JSON.parse(atob(parts[1]))
+      return payload.sub ?? 'unknown'
+    } catch {
+      return 'unknown'
+    }
+  }
+
   async withRetry<T>(fn: (token: string) => Promise<T>): Promise<T> {
     try {
       return await fn(this.current())

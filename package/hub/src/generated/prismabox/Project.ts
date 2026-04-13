@@ -10,6 +10,7 @@ export const ProjectPlain = t.Object(
     verification: t.String(),
     receiptSecret: __nullable__(t.String()),
     jwksUri: __nullable__(t.String()),
+    maxTaskHoldTime: __nullable__(t.Integer()),
     createdAt: t.Date(),
   },
   { additionalProperties: false },
@@ -48,6 +49,7 @@ export const ProjectRelations = t.Object(
           scheduledAt: t.Date(),
           startedAt: __nullable__(t.Date()),
           leaseExpiresAt: __nullable__(t.Date()),
+          maxHoldExpiresAt: __nullable__(t.Date()),
           finishedAt: __nullable__(t.Date()),
           error: __nullable__(t.String()),
           createdAt: t.Date(),
@@ -65,6 +67,7 @@ export const ProjectPlainInputCreate = t.Object(
     verification: t.Optional(t.String()),
     receiptSecret: t.Optional(__nullable__(t.String())),
     jwksUri: t.Optional(__nullable__(t.String())),
+    maxTaskHoldTime: t.Optional(__nullable__(t.Integer())),
   },
   { additionalProperties: false },
 );
@@ -74,6 +77,7 @@ export const ProjectPlainInputUpdate = t.Object(
     verification: t.Optional(t.String()),
     receiptSecret: t.Optional(__nullable__(t.String())),
     jwksUri: t.Optional(__nullable__(t.String())),
+    maxTaskHoldTime: t.Optional(__nullable__(t.Integer())),
   },
   { additionalProperties: false },
 );
@@ -186,6 +190,7 @@ export const ProjectWhere = t.Partial(
           verification: t.String(),
           receiptSecret: t.String(),
           jwksUri: t.String(),
+          maxTaskHoldTime: t.Integer(),
           createdAt: t.Date(),
         },
         { additionalProperties: false },
@@ -226,6 +231,7 @@ export const ProjectWhereUnique = t.Recursive(
               verification: t.String(),
               receiptSecret: t.String(),
               jwksUri: t.String(),
+              maxTaskHoldTime: t.Integer(),
               createdAt: t.Date(),
             },
             { additionalProperties: false },
@@ -244,6 +250,7 @@ export const ProjectSelect = t.Partial(
       verification: t.Boolean(),
       receiptSecret: t.Boolean(),
       jwksUri: t.Boolean(),
+      maxTaskHoldTime: t.Boolean(),
       createdAt: t.Boolean(),
       workers: t.Boolean(),
       tasks: t.Boolean(),
@@ -273,6 +280,9 @@ export const ProjectOrderBy = t.Partial(
         additionalProperties: false,
       }),
       jwksUri: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      maxTaskHoldTime: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {

@@ -18,11 +18,12 @@ datasource db {
 }
 
 model Project {
-  id            String   @id
-  verification  String   @default("receipted") @map("trustLevel")
-  receiptSecret String?
-  jwksUri       String?
-  createdAt     DateTime @default(now())
+  id               String   @id
+  verification     String   @default("receipted") @map("trustLevel")
+  receiptSecret    String?
+  jwksUri          String?
+  maxTaskHoldTime  Int?
+  createdAt        DateTime @default(now())
 
   workers       Worker[]
   tasks         Task[]
@@ -60,8 +61,9 @@ model Task {
   maxAttempts    Int       @default(3)
   scheduledAt    DateTime  @default(now())
   startedAt      DateTime?
-  leaseExpiresAt DateTime?
-  finishedAt     DateTime?
+  leaseExpiresAt    DateTime?
+  maxHoldExpiresAt  DateTime?
+  finishedAt        DateTime?
   error          String?
   createdAt      DateTime  @default(now())
 

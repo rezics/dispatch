@@ -6,7 +6,7 @@ import { env } from './env'
 import { prisma as db } from '#/prisma/client'
 import { models } from './model'
 import { tasksRoutes } from './api/tasks'
-import { claimRoutes } from './api/claim'
+import { claimRoutes, heartbeatRoutes } from './api/claim'
 import { workersRoutes } from './api/workers'
 import { projectsRoutes } from './api/projects'
 import { auditRoutes } from './api/audit'
@@ -58,6 +58,7 @@ const app = new Elysia()
   .use(models)
   .use(tasksRoutes(db, wsManager))
   .use(claimRoutes(db, authProviders, resultPluginRunner))
+  .use(heartbeatRoutes(db, authProviders))
   .use(workersRoutes(db))
   .use(projectsRoutes(db))
   .use(auditRoutes(db))

@@ -1,5 +1,5 @@
-export { defineWorkerConfig, type WorkerConfig } from './core/config'
-export { createWorker } from './core/worker'
+export { defineWorkerConfig, type WorkerConfig, type WorkerConfigInput } from './core/config'
+export { createWorker, type Worker } from './core/worker'
 export { definePlugin } from '@rezics/dispatch-type'
 export type {
   DispatchPlugin,
@@ -12,4 +12,7 @@ export type {
   WorkerMessage,
   HubMessage,
   CompletionReceipt,
+  SingleRunConfig,
+  WorkerStatus,
+  ActiveTaskInfo,
 } from '@rezics/dispatch-type'

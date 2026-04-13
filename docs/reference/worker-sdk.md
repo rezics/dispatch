@@ -1,6 +1,6 @@
 # Worker SDK Reference
 
-The `@rezics/dispatch-worker` package provides the SDK for building Dispatch workers.
+The `@rezics/dispatch-worker` package provides the SDK for building Dispatch workers. It is a pure library with no process or server assumptions, making it embeddable in any JavaScript/TypeScript runtime.
 
 ## Installation
 
@@ -12,8 +12,8 @@ bun add @rezics/dispatch-worker
 
 ```typescript
 // Core functions
-export { createWorker } from './core/worker'
-export { defineWorkerConfig, type WorkerConfig } from './core/config'
+export { createWorker, type Worker } from './core/worker'
+export { defineWorkerConfig, type WorkerConfig, type WorkerConfigInput } from './core/config'
 export { definePlugin } from '@rezics/dispatch-type'
 
 // Type re-exports
@@ -24,12 +24,24 @@ export type {
   Logger,
   Task,
   TaskResult,
-  TrustLevel,
+  VerificationMode,
   WorkerMessage,
   HubMessage,
   CompletionReceipt,
+  SingleRunConfig,
+  WorkerStatus,
+  ActiveTaskInfo,
 } from '@rezics/dispatch-type'
 ```
+
+## Subpath Exports
+
+| Path | Description |
+| --- | --- |
+| `@rezics/dispatch-worker` | SDK (createWorker, definePlugin, types) |
+| `@rezics/dispatch-worker/bin` | Standalone Bun entry point (reads env, handles signals) |
+| `@rezics/dispatch-worker/book-crawler` | Book crawler worker plugin |
+| `@rezics/dispatch-worker/anime-crawler` | Anime crawler worker plugin |
 
 ## Quick Example
 
@@ -37,7 +49,6 @@ export type {
 import { createWorker, defineWorkerConfig, definePlugin } from '@rezics/dispatch-worker'
 import { z } from 'zod'
 
-// 1. Define a plugin
 const myPlugin = definePlugin({
   name: 'echo',
   version: '1.0.0',
@@ -51,7 +62,6 @@ const myPlugin = definePlugin({
   },
 })
 
-// 2. Configure the worker
 const config = defineWorkerConfig({
   hub: {
     url: 'http://localhost:3721',
@@ -62,7 +72,6 @@ const config = defineWorkerConfig({
   plugin: [[myPlugin, {}]],
 })
 
-// 3. Start the worker
 const worker = createWorker(config)
 await worker.start()
 ```
@@ -77,9 +86,43 @@ Validates and returns a plugin definition. See [Plugin API Reference](/plugins/p
 
 Validates and returns a worker configuration. See [Configuration Reference](/reference/configuration).
 
-### `createWorker(config)`
+### `createWorker(config): Worker`
 
-Creates a worker instance. See [Configuration Reference](/reference/configuration#createworker-config).
+Creates a worker instance with the following methods:
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `start()` | `Promise<void>` | Start the worker. In single-run mode, resolves when all tasks complete or timeout is reached. |
+| `stop()` | `Promise<void>` | Stop the worker gracefully (waits for in-flight tasks up to `shutdownTimeout`). |
+| `capabilities()` | `string[]` | List of task types this worker can handle. |
+| `status()` | `WorkerStatus` | Current worker status: mode, connected state, uptime, task counts. |
+| `activeTasks()` | `ActiveTaskInfo[]` | List of in-flight tasks with progress information. |
+
+### `WorkerStatus`
+
+```typescript
+interface WorkerStatus {
+  mode: 'http' | 'ws' | 'single-run'
+  connected: boolean
+  uptime: number            // milliseconds since start
+  counts: {
+    active: number          // currently executing
+    completed: number       // total completed
+    failed: number          // total failed
+  }
+}
+```
+
+### `ActiveTaskInfo`
+
+```typescript
+interface ActiveTaskInfo {
+  taskId: string
+  type: string
+  startedAt: Date
+  progress: number | null   // 0-100 if reported by handler
+}
+```
 
 ## Type Reference
 
