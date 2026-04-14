@@ -5,7 +5,10 @@ export interface Task {
   project: string
   type: string
   payload: unknown
+  /** Effective priority (may be increased by aging). Range: 0–1000. */
   priority: number
+  /** Original priority set at creation. Range: 0–1000. Reset target on recurrence. */
+  basePriority: number
   status: TaskStatus
   workerId: string | null
   attempts: number
@@ -16,6 +19,10 @@ export interface Task {
   maxHoldExpiresAt: Date | null
   finishedAt: Date | null
   error: string | null
+  /** Recurrence interval in seconds. Null for one-shot tasks. */
+  recurrenceInterval: number | null
+  /** Max random jitter in seconds added to recurrence interval. */
+  recurrenceJitter: number | null
   createdAt: Date
 }
 

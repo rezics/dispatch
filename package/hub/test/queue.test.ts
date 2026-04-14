@@ -2,7 +2,7 @@ import { describe, expect, test, beforeAll, afterAll, beforeEach } from 'bun:tes
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '#/prisma/client'
 import { claimTasks } from '../src/queue/claim'
-import { completeTasks } from '../src/queue/complete'
+import { completeTasks, resetRecurringTasks } from '../src/queue/complete'
 import { renewLease } from '../src/queue/renew'
 import { createTask } from '../src/queue/create'
 
@@ -140,6 +140,86 @@ describe('queue', () => {
     const claimed = await claimTasks(db, 'w1', 'test-project', 1, '300s')
     expect(claimed.length).toBe(1)
     expect(claimed[0].maxHoldExpiresAt).toBeNull()
+  })
+})
+
+describe('recurrence', () => {
+  test('recurring task resets to pending with correct scheduledAt and basePriority', async () => {
+    const task = await createTask(db, {
+      project: 'test-project',
+      type: 'x',
+      payload: {},
+      priority: 100,
+      recurrenceInterval: 3600,
+    })
+
+    await claimTasks(db, 'w1', 'test-project', 1, '500s')
+    await completeTasks(
+      db,
+      [{ id: task.id, result: { strategy: 'discard' } }],
+      [],
+    )
+    await resetRecurringTasks(db, [task.id])
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    expect(updated.status).toBe('pending')
+    expect(updated.priority).toBe(100)
+    expect(updated.basePriority).toBe(100)
+    expect(updated.attempts).toBe(0)
+    expect(updated.workerId).toBeNull()
+    expect(updated.leaseExpiresAt).toBeNull()
+    expect(updated.maxHoldExpiresAt).toBeNull()
+    expect(updated.startedAt).toBeNull()
+
+    // scheduledAt should be ~3600s from now
+    const diff = (updated.scheduledAt.getTime() - Date.now()) / 1000
+    expect(diff).toBeGreaterThan(3590)
+    expect(diff).toBeLessThan(3610)
+  })
+
+  test('recurring task with jitter has scheduledAt within [interval, interval + jitter]', async () => {
+    const task = await createTask(db, {
+      project: 'test-project',
+      type: 'x',
+      payload: {},
+      recurrenceInterval: 3600,
+      recurrenceJitter: 600,
+    })
+
+    await claimTasks(db, 'w1', 'test-project', 1, '500s')
+    await completeTasks(
+      db,
+      [{ id: task.id, result: { strategy: 'discard' } }],
+      [],
+    )
+    await resetRecurringTasks(db, [task.id])
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    const diff = (updated.scheduledAt.getTime() - Date.now()) / 1000
+    expect(diff).toBeGreaterThan(3590)
+    expect(diff).toBeLessThan(4210) // 3600 + 600 + tolerance
+  })
+
+  test('failed recurring task stays failed (no auto-reset)', async () => {
+    const task = await createTask(db, {
+      project: 'test-project',
+      type: 'x',
+      payload: {},
+      recurrenceInterval: 3600,
+      maxAttempts: 1,
+    })
+
+    await claimTasks(db, 'w1', 'test-project', 1, '500s')
+    await completeTasks(
+      db,
+      [],
+      [{ id: task.id, error: 'boom', retryable: false }],
+    )
+    // resetRecurringTasks only operates on done tasks, not failed
+    await resetRecurringTasks(db, [task.id])
+
+    const updated = await db.task.findUniqueOrThrow({ where: { id: task.id } })
+    expect(updated.status).toBe('failed')
   })
 })
 

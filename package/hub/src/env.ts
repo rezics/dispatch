@@ -7,6 +7,7 @@ export const env = createEnv({
     PORT: z.coerce.number().default(3721),
     NODE_ENV: z.enum(['development', 'production']).default('development'),
     REAPER_INTERVAL: z.string().default('30s'),
+    AGING_SWEEPER_INTERVAL: z.string().default('300s'),
     DISPATCH_DISABLE_DASHBOARD: z
       .string()
       .default('false')

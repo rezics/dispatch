@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
 import { claimTasks } from '../queue/claim'
 import { renewLease } from '../queue/renew'
-import { completeTasks } from '../queue/complete'
+import { completeTasks, resetRecurringTasks } from '../queue/complete'
 import { workerAuth, requireProjectAccess } from '../auth/middleware'
 import type { AuthProvider } from '../auth/jwt'
 import { enforceReceipt } from '../notary/trust'
@@ -160,6 +160,11 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
                 }
               }
             }
+          }
+
+          // Reset recurring tasks after result plugins have run
+          if (doneItems.length > 0) {
+            await resetRecurringTasks(db, doneItems.map((d) => d.id))
           }
 
           return { ok: true }

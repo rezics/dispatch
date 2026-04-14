@@ -75,3 +75,46 @@ export async function completeTasks(
 
   await Promise.all(ops)
 }
+
+/**
+ * Reset recurring done tasks back to pending with a new scheduledAt.
+ * Call this AFTER result plugins have run so results are preserved.
+ */
+export async function resetRecurringTasks(
+  db: PrismaClient,
+  taskIds: string[],
+) {
+  if (taskIds.length === 0) return
+
+  const tasks = await db.task.findMany({
+    where: { id: { in: taskIds }, status: 'done', recurrenceInterval: { not: null } },
+    select: { id: true, basePriority: true, recurrenceInterval: true, recurrenceJitter: true },
+  })
+
+  const ops: Promise<unknown>[] = []
+  for (const task of tasks) {
+    const interval = task.recurrenceInterval!
+    const jitter = task.recurrenceJitter
+      ? Math.floor(Math.random() * (task.recurrenceJitter + 1))
+      : 0
+    const scheduledAt = new Date(Date.now() + (interval + jitter) * 1000)
+
+    ops.push(
+      db.task.update({
+        where: { id: task.id },
+        data: {
+          status: 'pending',
+          priority: task.basePriority,
+          scheduledAt,
+          attempts: 0,
+          workerId: null,
+          leaseExpiresAt: null,
+          maxHoldExpiresAt: null,
+          startedAt: null,
+        },
+      }),
+    )
+  }
+
+  await Promise.all(ops)
+}

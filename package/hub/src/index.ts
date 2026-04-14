@@ -14,6 +14,7 @@ import { authRoutes } from './api/auth'
 import { policyRoutes } from './api/policies'
 import { userRoutes } from './api/users'
 import { startReaper } from './reaper/reaper'
+import { startAgingSweeper } from './reaper/aging'
 import type { AuthProvider } from './auth/jwt'
 import { WsManager } from './ws/manager'
 import { wsRoute } from './ws/route'
@@ -75,8 +76,9 @@ const app = new Elysia()
   .use(dashboardRoute(env.DISPATCH_DISABLE_DASHBOARD))
   .listen(env.PORT)
 
-// Start the reaper loop
+// Start the reaper loop and aging sweeper
 const stopReaper = startReaper(db, env.REAPER_INTERVAL)
+const stopAgingSweeper = startAgingSweeper(db, env.AGING_SWEEPER_INTERVAL)
 
 console.log(`Dispatch Hub running on http://localhost:${env.PORT}`)
 console.log(`OpenAPI docs at http://localhost:${env.PORT}/openapi`)
@@ -91,12 +93,14 @@ if (!env.DISPATCH_DISABLE_DASHBOARD) {
 
 process.on('SIGTERM', async () => {
   stopReaper()
+  stopAgingSweeper()
   await db.$disconnect()
   process.exit(0)
 })
 
 process.on('SIGINT', async () => {
   stopReaper()
+  stopAgingSweeper()
   await db.$disconnect()
   process.exit(0)
 })

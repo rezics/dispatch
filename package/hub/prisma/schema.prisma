@@ -23,6 +23,8 @@ model Project {
   receiptSecret    String?
   jwksUri          String?
   maxTaskHoldTime  Int?
+  agingRate        Float?
+  agingMaxPriority Int?     @default(1000)
   createdAt        DateTime @default(now())
 
   workers       Worker[]
@@ -55,6 +57,7 @@ model Task {
   type           String
   payload        Json
   priority       Int       @default(5)
+  basePriority   Int       @default(5)
   status         String    @default("pending")
   workerId       String?
   attempts       Int       @default(0)
@@ -65,6 +68,8 @@ model Task {
   maxHoldExpiresAt  DateTime?
   finishedAt        DateTime?
   error          String?
+  recurrenceInterval Int?
+  recurrenceJitter   Int?
   createdAt      DateTime  @default(now())
 
   projectRef     Project   @relation(fields: [project], references: [id])

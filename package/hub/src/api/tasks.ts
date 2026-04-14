@@ -20,9 +20,11 @@ export const tasksRoutes = (db: PrismaClient, wsManager?: WsManager) =>
           project: t.String(),
           type: t.String(),
           payload: t.Any(),
-          priority: t.Optional(t.Integer({ minimum: 1, maximum: 10 })),
+          priority: t.Optional(t.Integer({ minimum: 0, maximum: 1000 })),
           maxAttempts: t.Optional(t.Integer({ minimum: 1 })),
           scheduledAt: t.Optional(t.String({ format: 'date-time' })),
+          recurrenceInterval: t.Optional(t.Integer({ minimum: 1 })),
+          recurrenceJitter: t.Optional(t.Integer({ minimum: 0 })),
         }),
         detail: {
           summary: 'Create a task',
