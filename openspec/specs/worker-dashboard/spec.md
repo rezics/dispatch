@@ -33,6 +33,17 @@ The worker-dashboard SHALL display a config page showing: loaded plugins (name, 
 - **WHEN** the config includes `proxy: 'http://user:pass@proxy.example.com'`
 - **THEN** the displayed value is redacted (e.g., `http://***@proxy.example.com`)
 
+### Requirement: Local HTTP API for dashboard data
+The worker-dashboard SPA SHALL fetch data from API endpoints prefixed with `/api/` at the current origin. The endpoints are `GET /api/status`, `GET /api/tasks`, and `GET /api/config`. The host process (CLI) is responsible for serving these endpoints and the dashboard static files.
+
+#### Scenario: Local API responds
+- **WHEN** `GET /api/status` is called via the dashboard's fetch client
+- **THEN** it returns JSON with connection state, uptime, and task counts
+
+#### Scenario: Port configurable
+- **WHEN** the host process serves the dashboard on port 9999
+- **THEN** the dashboard fetches from `http://localhost:9999/api/status` (via `window.location.origin`)
+
 ### Requirement: Worker exposes status via programmatic methods
 The worker object returned by `createWorker()` SHALL expose methods for querying internal state: `status()` returning connection state, mode, uptime, and aggregate task counts; `activeTasks()` returning a list of in-flight task IDs with progress.
 
