@@ -1,11 +1,15 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: defineWorkerConfig returns typed configuration
-The `defineWorkerConfig()` function SHALL accept a configuration object with `hub` (url, getToken), `mode` (`'http'`, `'ws'`, or `'single-run'`, default `'http'`), `concurrency` (default 10), `plugin` array, optional `heartbeatInterval` (default 60000ms), and mode-specific options. For `'single-run'` mode, `timeout` is required and `claimCount` is optional. The function SHALL return a validated, typed configuration object. The function SHALL NOT reference any process globals (`process.env`, `process.on`, etc.).
+The `defineWorkerConfig()` function SHALL accept a configuration object with `hub` (url, getToken, optional resultEndpoint), `mode` (`'http'`, `'ws'`, or `'single-run'`, default `'http'`), `concurrency` (default 10), `plugin` array, optional `heartbeatInterval` (default 60000ms), and mode-specific options. For `'single-run'` mode, `timeout` is required and `claimCount` is optional. The function SHALL return a validated, typed configuration object. The function SHALL NOT reference any process globals (`process.env`, `process.on`, etc.).
 
 #### Scenario: Minimal config
 - **WHEN** `defineWorkerConfig({ hub: { url: 'https://hub.example.com', getToken: () => token }, plugin: [] })` is called
-- **THEN** a config object is returned with `mode: 'http'`, `concurrency: 10`, `heartbeatInterval: 60000`, and empty plugin list
+- **THEN** a config object is returned with `mode: 'http'`, `concurrency: 10`, `heartbeatInterval: 60000`, empty plugin list, and `hub.resultEndpoint: undefined`
+
+#### Scenario: Config with resultEndpoint
+- **WHEN** `defineWorkerConfig({ hub: { url: '...', getToken: fn, resultEndpoint: 'https://rezics.com/dispatch/results' }, plugin: [...] })` is called
+- **THEN** the config reflects `hub.resultEndpoint: 'https://rezics.com/dispatch/results'`
 
 #### Scenario: Custom concurrency and mode
 - **WHEN** `defineWorkerConfig({ hub: { url: '...' , getToken: fn }, mode: 'ws', concurrency: 50, plugin: [...] })` is called
