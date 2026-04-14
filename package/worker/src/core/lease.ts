@@ -1,6 +1,7 @@
 import type { Task, TaskResult, Logger, ActiveTaskInfo } from '@rezics/dispatch-type'
 import type { TokenManager } from './auth'
 import type { PluginRegistry } from './registry'
+import { ExternalResultSubmitter } from './external-result'
 
 export interface LeaseConfig {
   hubUrl: string
@@ -8,10 +9,13 @@ export interface LeaseConfig {
   pollInterval: number
   shutdownTimeout: number
   heartbeatInterval: number
+  resultEndpoint?: string
 }
 
 interface TaskOutcome {
   id: string
+  project?: string
+  type?: string
   status: 'done' | 'failed'
   result?: TaskResult
   error?: string
@@ -23,6 +27,7 @@ export class LeaseManager {
   private tokenManager: TokenManager
   private registry: PluginRegistry
   private logger: Logger
+  private externalSubmitter: ExternalResultSubmitter | null
 
   private running = false
   private shuttingDown = false
@@ -46,6 +51,9 @@ export class LeaseManager {
     this.tokenManager = tokenManager
     this.registry = registry
     this.logger = logger
+    this.externalSubmitter = config.resultEndpoint
+      ? new ExternalResultSubmitter(config.resultEndpoint, tokenManager, logger)
+      : null
   }
 
   get activeCount(): number {
@@ -237,12 +245,14 @@ export class LeaseManager {
     this.registry
       .route(task, progressFn)
       .then((result) => {
-        this.pendingResults.push({ id: task.id, status: 'done', result })
+        this.pendingResults.push({ id: task.id, project: task.project, type: task.type, status: 'done', result })
         this._completedCount++
       })
       .catch((err) => {
         this.pendingResults.push({
           id: task.id,
+          project: task.project,
+          type: task.type,
           status: 'failed',
           error: err instanceof Error ? err.message : String(err),
           retryable: true,
@@ -264,6 +274,24 @@ export class LeaseManager {
     if (this.pendingResults.length === 0) return
 
     const results = this.pendingResults.splice(0)
+
+    if (this.externalSubmitter) {
+      const done = results
+        .filter((r) => r.status === 'done')
+        .map((r) => ({ taskId: r.id, project: r.project!, type: r.type!, data: r.result! }))
+      const failed = results
+        .filter((r) => r.status === 'failed')
+        .map((r) => ({ taskId: r.id, error: r.error!, retryable: r.retryable ?? true }))
+
+      try {
+        await this.externalSubmitter.submitBatch(done, failed)
+      } catch (err) {
+        this.logger.error('Failed to submit external results', err)
+        results.forEach((r) => this.pendingResults.push(r))
+      }
+      return
+    }
+
     const done = results
       .filter((r) => r.status === 'done')
       .map((r) => ({ id: r.id, result: r.result! }))
@@ -295,7 +323,6 @@ export class LeaseManager {
       this.logger.debug(`Submitted ${done.length} done, ${failed.length} failed`)
     } catch (err) {
       this.logger.error('Failed to submit results', err)
-      // Put them back for retry
       results.forEach((r) => this.pendingResults.push(r))
     }
   }

@@ -11,6 +11,14 @@ export const env = createEnv({
       .string()
       .default('false')
       .transform((v) => v === 'true'),
+    DISPATCH_AUTH_JWKS_URI: z.string().url().optional(),
+    DISPATCH_AUTH_ISSUER: z.string().optional(),
+    DISPATCH_AUTH_AUDIENCE: z.string().optional(),
+    DISPATCH_RECEIPT_SECRET: z.string().optional(),
+    DISPATCH_SEED_REZICS: z
+      .string()
+      .default('false')
+      .transform((v) => v === 'true'),
   },
   runtimeEnv: process.env,
 })

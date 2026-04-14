@@ -1,16 +1,21 @@
 import { createWorker, defineWorkerConfig } from '@rezics/dispatch-worker'
 import type { Worker } from '@rezics/dispatch-worker'
 import type { RezicsConfig } from './config'
+import { exchangeToken } from './auth'
 import bookCrawler from './crawler/book/index'
 import animeCrawler from './crawler/anime/index'
 
+const DEFAULT_SERVER_URL = 'https://rezics.com'
+
 export function createRezicsWorker(config: RezicsConfig): Worker {
-  const token = config.hub.token
+  const apiToken = config.auth.token
+  const serverUrl = config.auth.server_url || DEFAULT_SERVER_URL
 
   const workerConfig = defineWorkerConfig({
     hub: {
       url: config.hub.url,
-      getToken: async () => token,
+      getToken: async () => exchangeToken(apiToken, serverUrl),
+      resultEndpoint: `${serverUrl}/dispatch/results`,
     },
     mode: config.worker.mode,
     concurrency: config.worker.concurrency,

@@ -2,7 +2,7 @@ import * as jose from 'jose'
 
 export interface AuthProvider {
   jwksUri: string
-  audience: string
+  audience?: string
   issuer: string
 }
 
@@ -30,7 +30,7 @@ export async function verifyWorkerToken(
     try {
       const jwks = getJWKS(provider.jwksUri)
       const { payload } = await jose.jwtVerify(token, jwks, {
-        audience: provider.audience,
+        ...(provider.audience ? { audience: provider.audience } : {}),
         issuer: provider.issuer,
       })
       return payload

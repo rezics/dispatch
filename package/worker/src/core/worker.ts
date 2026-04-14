@@ -50,6 +50,7 @@ export function createWorker(config: WorkerConfig): Worker {
           {
             hubUrl: config.hub.url,
             concurrency: config.concurrency,
+            resultEndpoint: config.hub.resultEndpoint,
           },
           tokenManager,
           registry,
@@ -64,6 +65,7 @@ export function createWorker(config: WorkerConfig): Worker {
             heartbeatInterval: config.heartbeatInterval,
             timeout: config.timeout!,
             claimCount: config.claimCount ?? config.concurrency,
+            resultEndpoint: config.hub.resultEndpoint,
           },
           tokenManager,
           registry,
@@ -77,6 +79,7 @@ export function createWorker(config: WorkerConfig): Worker {
             pollInterval: config.pollInterval,
             shutdownTimeout: config.shutdownTimeout,
             heartbeatInterval: config.heartbeatInterval,
+            resultEndpoint: config.hub.resultEndpoint,
           },
           tokenManager,
           registry,

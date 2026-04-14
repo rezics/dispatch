@@ -24,8 +24,14 @@ const authProviders: AuthProvider[] = []
 const wsManager = new WsManager(db)
 const resultPluginRunner = new ResultPluginRunner(db)
 
-// Add auth providers from environment if configured
-// For now, providers are empty — workers can't authenticate until IdP is configured
+// Add auth provider from environment if configured
+if (env.DISPATCH_AUTH_JWKS_URI && env.DISPATCH_AUTH_ISSUER) {
+  authProviders.push({
+    jwksUri: env.DISPATCH_AUTH_JWKS_URI,
+    issuer: env.DISPATCH_AUTH_ISSUER,
+    ...(env.DISPATCH_AUTH_AUDIENCE ? { audience: env.DISPATCH_AUTH_AUDIENCE } : {}),
+  })
+}
 
 const app = new Elysia()
   .use(
@@ -74,6 +80,11 @@ const stopReaper = startReaper(db, env.REAPER_INTERVAL)
 
 console.log(`Dispatch Hub running on http://localhost:${env.PORT}`)
 console.log(`OpenAPI docs at http://localhost:${env.PORT}/openapi`)
+if (authProviders.length > 0) {
+  console.log(`Auth providers: ${authProviders.length} (${authProviders.map((p) => p.issuer).join(', ')})`)
+} else {
+  console.log('Auth providers: 0 (worker auth disabled)')
+}
 if (!env.DISPATCH_DISABLE_DASHBOARD) {
   console.log(`Dashboard at http://localhost:${env.PORT}/_dashboard`)
 }

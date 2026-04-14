@@ -5,6 +5,7 @@ const workerConfigSchema = z.object({
   hub: z.object({
     url: z.string().url('hub.url must be a valid URL'),
     getToken: z.custom<() => Promise<string>>((val) => typeof val === 'function'),
+    resultEndpoint: z.string().url('hub.resultEndpoint must be a valid URL').optional(),
   }),
   mode: z.enum(['http', 'ws', 'single-run']).default('http'),
   concurrency: z.number().int().min(1).default(10),
@@ -25,6 +26,7 @@ export type WorkerConfigInput = {
   hub: {
     url: string
     getToken: () => Promise<string>
+    resultEndpoint?: string
   }
   mode?: 'http' | 'ws' | 'single-run'
   concurrency?: number
@@ -41,6 +43,7 @@ export interface WorkerConfig {
   hub: {
     url: string
     getToken: () => Promise<string>
+    resultEndpoint?: string
   }
   mode: 'http' | 'ws' | 'single-run'
   concurrency: number
@@ -76,6 +79,7 @@ export function defineWorkerConfig(input: WorkerConfigInput): WorkerConfig {
     hub: {
       url,
       getToken: parsed.hub.getToken as () => Promise<string>,
+      resultEndpoint: parsed.hub.resultEndpoint as string | undefined,
     },
     mode: parsed.mode as 'http' | 'ws' | 'single-run',
     concurrency: parsed.concurrency as number,

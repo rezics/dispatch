@@ -1,6 +1,7 @@
 import type { Task, TaskResult, Logger, ActiveTaskInfo } from '@rezics/dispatch-type'
 import type { TokenManager } from './auth'
 import type { PluginRegistry } from './registry'
+import { ExternalResultSubmitter } from './external-result'
 
 export interface SingleRunConfig {
   hubUrl: string
@@ -9,6 +10,7 @@ export interface SingleRunConfig {
   heartbeatInterval: number
   timeout: number
   claimCount: number
+  resultEndpoint?: string
 }
 
 export interface SingleRunResult {
@@ -20,6 +22,8 @@ export interface SingleRunResult {
 
 interface TaskOutcome {
   id: string
+  project?: string
+  type?: string
   status: 'done' | 'failed'
   result?: TaskResult
   error?: string
@@ -31,6 +35,7 @@ export class SingleRunManager {
   private tokenManager: TokenManager
   private registry: PluginRegistry
   private logger: Logger
+  private externalSubmitter: ExternalResultSubmitter | null
 
   private running = false
   private activeTaskControllers = new Map<string, AbortController>()
@@ -51,6 +56,9 @@ export class SingleRunManager {
     this.tokenManager = tokenManager
     this.registry = registry
     this.logger = logger
+    this.externalSubmitter = config.resultEndpoint
+      ? new ExternalResultSubmitter(config.resultEndpoint, tokenManager, logger)
+      : null
   }
 
   get activeCount(): number {
@@ -263,12 +271,14 @@ export class SingleRunManager {
       this.registry
         .route(task, progressFn)
         .then((result) => {
-          this.pendingResults.push({ id: task.id, status: 'done', result })
+          this.pendingResults.push({ id: task.id, project: task.project, type: task.type, status: 'done', result })
           this._completedCount++
         })
         .catch((err) => {
           this.pendingResults.push({
             id: task.id,
+            project: task.project,
+            type: task.type,
             status: 'failed',
             error: err instanceof Error ? err.message : String(err),
             retryable: true,
@@ -287,6 +297,23 @@ export class SingleRunManager {
     if (this.pendingResults.length === 0) return
 
     const results = this.pendingResults.splice(0)
+
+    if (this.externalSubmitter) {
+      const done = results
+        .filter((r) => r.status === 'done')
+        .map((r) => ({ taskId: r.id, project: r.project!, type: r.type!, data: r.result! }))
+      const failed = results
+        .filter((r) => r.status === 'failed')
+        .map((r) => ({ taskId: r.id, error: r.error!, retryable: r.retryable ?? true }))
+
+      try {
+        await this.externalSubmitter.submitBatch(done, failed)
+      } catch (err) {
+        this.logger.error('Failed to submit external results', err)
+      }
+      return
+    }
+
     const done = results
       .filter((r) => r.status === 'done')
       .map((r) => ({ id: r.id, result: r.result! }))

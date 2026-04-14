@@ -9,7 +9,12 @@ const configSchema = z
     hub: z
       .object({
         url: z.string().default(''),
+      })
+      .default({}),
+    auth: z
+      .object({
         token: z.string().default(''),
+        server_url: z.string().default(''),
       })
       .default({}),
     worker: z
@@ -106,7 +111,8 @@ function applyEnvOverlay(config: Record<string, unknown>): Record<string, unknow
     process.env[rezicsKey] ?? (dispatchKey ? process.env[dispatchKey] : undefined)
 
   const hubUrl = env('REZICS_HUB_URL', 'DISPATCH_HUB_URL')
-  const hubToken = env('REZICS_HUB_TOKEN', 'DISPATCH_TOKEN')
+  const authToken = env('REZICS_AUTH_TOKEN')
+  const authServerUrl = env('REZICS_AUTH_SERVER_URL')
   const workerMode = env('REZICS_WORKER_MODE', 'DISPATCH_MODE')
   const workerConcurrency = env('REZICS_WORKER_CONCURRENCY', 'DISPATCH_CONCURRENCY')
   const dashboardPort = env('REZICS_DASHBOARD_PORT')
@@ -116,7 +122,11 @@ function applyEnvOverlay(config: Record<string, unknown>): Record<string, unknow
   if (!result.hub) result.hub = {}
   const hub = result.hub as Record<string, unknown>
   if (hubUrl) hub.url = hubUrl
-  if (hubToken) hub.token = hubToken
+
+  if (!result.auth) result.auth = {}
+  const auth = result.auth as Record<string, unknown>
+  if (authToken) auth.token = authToken
+  if (authServerUrl) auth.server_url = authServerUrl
 
   if (!result.worker) result.worker = {}
   const worker = result.worker as Record<string, unknown>
@@ -157,7 +167,7 @@ function applyFlagOverrides(
   return result
 }
 
-const SECRET_KEYS = new Set(['token', 'mal_api_key', 'anilist_token', 'proxy'])
+const SECRET_KEYS = new Set(['token', 'server_url', 'mal_api_key', 'anilist_token', 'proxy'])
 
 export function redactSecrets(obj: unknown): unknown {
   if (typeof obj !== 'object' || obj === null) return obj
@@ -207,10 +217,6 @@ export function validateConfigForStart(config: RezicsConfig): void {
     } catch {
       errors.push('hub.url must be a valid URL')
     }
-  }
-
-  if (!config.hub.token) {
-    errors.push('hub.token is required')
   }
 
   if (errors.length > 0) {

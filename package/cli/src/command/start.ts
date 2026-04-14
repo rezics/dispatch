@@ -1,5 +1,6 @@
 import { parseArgs } from 'util'
 import { loadConfig, validateConfigForStart } from '../config'
+import { ensureAuthToken } from '../auth'
 import { createRezicsWorker } from '../worker'
 import { createServer } from '../server'
 
@@ -23,6 +24,8 @@ export async function startCommand(args: string[]) {
   })
 
   validateConfigForStart(config)
+
+  await ensureAuthToken(config)
 
   const worker = createRezicsWorker(config)
   const server = createServer(worker, config)

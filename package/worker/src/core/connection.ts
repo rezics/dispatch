@@ -1,10 +1,12 @@
 import type { Task, TaskResult, HubMessage, WorkerMessage, Logger, ActiveTaskInfo } from '@rezics/dispatch-type'
 import type { TokenManager } from './auth'
 import type { PluginRegistry } from './registry'
+import { ExternalResultSubmitter } from './external-result'
 
 export interface ConnectionConfig {
   hubUrl: string
   concurrency: number
+  resultEndpoint?: string
 }
 
 export class WsConnection {
@@ -12,6 +14,7 @@ export class WsConnection {
   private tokenManager: TokenManager
   private registry: PluginRegistry
   private logger: Logger
+  private externalSubmitter: ExternalResultSubmitter | null
 
   private ws: WebSocket | null = null
   private running = false
@@ -31,6 +34,9 @@ export class WsConnection {
     this.tokenManager = tokenManager
     this.registry = registry
     this.logger = logger
+    this.externalSubmitter = config.resultEndpoint
+      ? new ExternalResultSubmitter(config.resultEndpoint, tokenManager, logger)
+      : null
   }
 
   get activeCount(): number {
@@ -182,20 +188,34 @@ export class WsConnection {
 
     this.registry
       .route(task, progressFn)
-      .then((result) => {
-        this.send({
-          type: 'task:done',
-          taskId: task.id,
-          result,
-        })
+      .then(async (result) => {
+        if (this.externalSubmitter) {
+          await this.externalSubmitter.submitDone([
+            { taskId: task.id, project: task.project, type: task.type, data: result },
+          ])
+        } else {
+          this.send({
+            type: 'task:done',
+            taskId: task.id,
+            result,
+          })
+        }
       })
-      .catch((err) => {
-        this.send({
-          type: 'task:fail',
-          taskId: task.id,
-          error: err instanceof Error ? err.message : String(err),
-          retryable: true,
-        })
+      .catch(async (err) => {
+        if (this.externalSubmitter) {
+          await this.externalSubmitter.submitFailed([
+            { taskId: task.id, error: err instanceof Error ? err.message : String(err), retryable: true },
+          ]).catch((submitErr) => {
+            this.logger.error('Failed to submit external failure result', submitErr)
+          })
+        } else {
+          this.send({
+            type: 'task:fail',
+            taskId: task.id,
+            error: err instanceof Error ? err.message : String(err),
+            retryable: true,
+          })
+        }
       })
       .finally(() => {
         this.activeTasks.delete(task.id)
