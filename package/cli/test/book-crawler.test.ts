@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test'
 import { z } from 'zod'
-import { parseBook } from '../src/book-crawler/parser'
-import bookCrawlerPlugin from '../src/book-crawler/index'
+import { parseBook } from '../src/crawler/book/parser'
+import bookCrawlerPlugin from '../src/crawler/book/index'
 import type { PluginContext, Task } from '@rezics/dispatch-type'
 
 describe('book-crawler', () => {
@@ -63,7 +63,7 @@ describe('book-crawler', () => {
 
   describe('plugin definition', () => {
     it('has correct metadata', () => {
-      expect(bookCrawlerPlugin.name).toBe('@rezics/dispatch-worker/book-crawler')
+      expect(bookCrawlerPlugin.name).toBe('@rezics/dispatch-cli/book-crawler')
       expect(bookCrawlerPlugin.capabilities).toEqual(['book:crawl', 'book:update'])
       expect(bookCrawlerPlugin.trust).toBe('receipted')
       expect(bookCrawlerPlugin.mode).toBe('http')

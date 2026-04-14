@@ -2,6 +2,9 @@ import { z } from 'zod'
 import { definePlugin } from '@rezics/dispatch-type'
 import type { PluginContext, Task, TaskResult } from '@rezics/dispatch-type'
 import { parseBook } from './parser'
+import { initRateLimit as initQidian, fetchQidian } from './source/qidian'
+import { initRateLimit as initJjwxc, fetchJjwxc } from './source/jjwxc'
+import { initRateLimit as initNovel, fetchNovel } from './source/novel'
 
 const configSchema = z.object({
   rateLimit: z.number().default(10),
@@ -11,31 +14,29 @@ const configSchema = z.object({
 
 type BookCrawlerConfig = z.infer<typeof configSchema>
 
-let rateLimiter: { lastRequest: number; minInterval: number } | null = null
+function detectSource(url: string): 'qidian' | 'jjwxc' | 'novel' | null {
+  if (url.includes('qidian') || url.includes('webnovel')) return 'qidian'
+  if (url.includes('jjwxc')) return 'jjwxc'
+  if (url.includes('novel')) return 'novel'
+  return null
+}
 
-async function throttledFetch(url: string, proxy?: string): Promise<string> {
-  if (rateLimiter) {
-    const elapsed = Date.now() - rateLimiter.lastRequest
-    if (elapsed < rateLimiter.minInterval) {
-      await new Promise((resolve) => setTimeout(resolve, rateLimiter!.minInterval - elapsed))
-    }
-    rateLimiter.lastRequest = Date.now()
+async function fetchBySource(url: string, proxy?: string): Promise<string> {
+  const source = detectSource(url)
+  switch (source) {
+    case 'qidian':
+      return fetchQidian(url, proxy)
+    case 'jjwxc':
+      return fetchJjwxc(url, proxy)
+    case 'novel':
+      return fetchNovel(url, proxy)
+    default:
+      return fetchQidian(url, proxy)
   }
-
-  const fetchOptions: RequestInit = {}
-  if (proxy) {
-    fetchOptions.headers = { 'X-Proxy-URL': proxy }
-  }
-
-  const response = await fetch(url, fetchOptions)
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-  }
-  return response.text()
 }
 
 export default definePlugin({
-  name: '@rezics/dispatch-worker/book-crawler',
+  name: '@rezics/dispatch-cli/book-crawler',
   version: '0.1.0',
   capabilities: ['book:crawl', 'book:update'],
   config: configSchema,
@@ -45,8 +46,10 @@ export default definePlugin({
   mode: 'http',
 
   async onLoad(ctx: PluginContext<BookCrawlerConfig>) {
-    const interval = Math.floor(1000 / ctx.config.rateLimit)
-    rateLimiter = { lastRequest: 0, minInterval: interval }
+    initQidian(ctx.config.rateLimit)
+    initJjwxc(ctx.config.rateLimit)
+    initNovel(ctx.config.rateLimit)
+
     ctx.logger.info(`Book crawler loaded: rate limit ${ctx.config.rateLimit} req/s, sources: ${ctx.config.sources.join(', ')}`)
     if (ctx.config.proxy) {
       ctx.logger.info(`Using proxy: ${ctx.config.proxy}`)
@@ -58,7 +61,7 @@ export default definePlugin({
       const { url, webhookUrl } = task.payload as { url: string; webhookUrl: string }
 
       await ctx.progress(10, 'Fetching page')
-      const html = await throttledFetch(url, ctx.config.proxy)
+      const html = await fetchBySource(url, ctx.config.proxy)
 
       await ctx.progress(80, 'Parsing book metadata')
       const book = parseBook(html, url)
@@ -76,7 +79,7 @@ export default definePlugin({
       }
 
       await ctx.progress(10, 'Checking for updates')
-      const html = await throttledFetch(url, ctx.config.proxy)
+      const html = await fetchBySource(url, ctx.config.proxy)
 
       await ctx.progress(50, 'Comparing content')
       const book = parseBook(html, url)

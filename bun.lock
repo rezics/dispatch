@@ -5,6 +5,20 @@
     "": {
       "name": "@rezics/dispatch",
     },
+    "package/cli": {
+      "name": "@rezics/dispatch-cli",
+      "version": "0.1.0",
+      "bin": {
+        "rezics": "src/main.ts",
+      },
+      "dependencies": {
+        "@rezics/dispatch-type": "workspace:*",
+        "@rezics/dispatch-worker": "workspace:*",
+        "elysia": "^1.3.0",
+        "smol-toml": "^1.3.1",
+        "zod": "4.3.6",
+      },
+    },
     "package/hub": {
       "name": "@rezics/dispatch-hub",
       "version": "0.1.0",
@@ -86,9 +100,7 @@
       "name": "@rezics/dispatch-worker",
       "version": "0.1.0",
       "dependencies": {
-        "@elysiajs/cors": "^1.3.3",
         "@rezics/dispatch-type": "workspace:*",
-        "elysia": "1.4.28",
         "zod": "4.3.6",
       },
     },
@@ -292,6 +304,8 @@
     "@radix-ui/react-use-effect-event": ["@radix-ui/react-use-effect-event@0.0.2", "", { "dependencies": { "@radix-ui/react-use-layout-effect": "1.1.1" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-Qp8WbZOBe+blgpuUT+lw2xheLP8q0oatc9UpmiemEICxGvFLYmHm9QowVZGHtJlGbS6A6yJ3iViad/2cVjnOiA=="],
 
     "@radix-ui/react-use-layout-effect": ["@radix-ui/react-use-layout-effect@1.1.1", "", { "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-RbJRS4UWQFkzHTTwVymMTUv8EqYhOp8dOOviLj2ugtTiXRaRQS7GLGxZTLL1jWhMeoSCf5zmcZkqTl9IiYfXcQ=="],
+
+    "@rezics/dispatch-cli": ["@rezics/dispatch-cli@workspace:package/cli"],
 
     "@rezics/dispatch-hub": ["@rezics/dispatch-hub@workspace:package/hub"],
 
@@ -698,6 +712,8 @@
     "signal-exit": ["signal-exit@4.1.0", "", {}, "sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw=="],
 
     "sisteransi": ["sisteransi@1.0.5", "", {}, "sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg=="],
+
+    "smol-toml": ["smol-toml@1.6.1", "", {}, "sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg=="],
 
     "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
 

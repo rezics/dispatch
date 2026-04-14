@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
-import animeCrawlerPlugin from '../src/anime-crawler/index'
+import animeCrawlerPlugin from '../src/crawler/anime/index'
 import type { PluginContext, Task } from '@rezics/dispatch-type'
 
 describe('anime-crawler', () => {
@@ -31,7 +31,7 @@ describe('anime-crawler', () => {
 
   describe('plugin definition', () => {
     it('has correct metadata', () => {
-      expect(animeCrawlerPlugin.name).toBe('@rezics/dispatch-worker/anime-crawler')
+      expect(animeCrawlerPlugin.name).toBe('@rezics/dispatch-cli/anime-crawler')
       expect(animeCrawlerPlugin.capabilities).toEqual(['anime:crawl', 'anime:update'])
       expect(animeCrawlerPlugin.trust).toBe('receipted')
       expect(animeCrawlerPlugin.mode).toBe('http')
