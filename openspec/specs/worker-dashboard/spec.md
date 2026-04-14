@@ -33,16 +33,16 @@ The worker-dashboard SHALL display a config page showing: loaded plugins (name, 
 - **WHEN** the config includes `proxy: 'http://user:pass@proxy.example.com'`
 - **THEN** the displayed value is redacted (e.g., `http://***@proxy.example.com`)
 
-### Requirement: Local HTTP API for dashboard data
-The worker SHALL expose a local HTTP API (default `localhost:45321`) that serves worker status, active tasks, task history, and config. The worker-dashboard fetches data from this local API.
+### Requirement: Worker exposes status via programmatic methods
+The worker object returned by `createWorker()` SHALL expose methods for querying internal state: `status()` returning connection state, mode, uptime, and aggregate task counts; `activeTasks()` returning a list of in-flight task IDs with progress.
 
-#### Scenario: Local API responds
-- **WHEN** `GET http://localhost:45321/status` is called
-- **THEN** it returns JSON with connection state, uptime, and task counts
+#### Scenario: Query worker status
+- **WHEN** `worker.status()` is called while the worker is running
+- **THEN** it returns an object with `{ mode, connected, uptime, counts: { active, completed, failed } }`
 
-#### Scenario: Port configurable
-- **WHEN** the worker is configured with `dashboard.port: 9999`
-- **THEN** the local API listens on port 9999
+#### Scenario: Query active tasks
+- **WHEN** `worker.activeTasks()` is called while 3 tasks are in-flight
+- **THEN** it returns an array of 3 objects with `{ taskId, type, startedAt, progress }`
 
 ### Requirement: Navigation
 The worker-dashboard SHALL have navigation with links to: Status, Tasks, Config.

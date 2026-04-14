@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: HTTP Lease poll loop
-The worker in HTTP Lease mode SHALL continuously poll the hub via `POST /tasks/claim` with configured `count` and `lease` duration. When no tasks are returned, the worker SHALL sleep for a configurable `pollInterval` (default 5s) before retrying.
+The worker in HTTP continuous mode SHALL continuously poll the hub via `POST /tasks/claim` with configured `count` and `lease` duration. When no tasks are returned, the worker SHALL sleep for a configurable `pollInterval` (default 5s) before retrying.
 
 #### Scenario: Tasks available
 - **WHEN** the worker polls and the hub returns 3 tasks
@@ -22,17 +22,6 @@ The worker SHALL execute at most `concurrency` tasks simultaneously. If the work
 - **WHEN** all concurrency slots are occupied
 - **THEN** the worker defers the next poll until at least one slot frees
 
-### Requirement: Automatic lease renewal at 70% elapsed time
-The worker SHALL schedule a lease renewal at 70% of the lease duration. If tasks are still running when the timer fires, the worker SHALL call `POST /tasks/lease/renew` to extend the lease.
-
-#### Scenario: Renewal fires
-- **WHEN** a 500s lease is active and 350s have elapsed with tasks still running
-- **THEN** the worker sends a lease renewal request
-
-#### Scenario: All tasks done before renewal
-- **WHEN** all claimed tasks complete before 70% of the lease elapses
-- **THEN** no renewal request is sent
-
 ### Requirement: Batch completion submission
 After executing all claimed tasks (or when the batch is fully processed), the worker SHALL submit results via `POST /tasks/complete` with `done` and `failed` arrays.
 
@@ -48,12 +37,12 @@ The worker SHALL support submitting partial completions for tasks that finish be
 - **THEN** the worker MAY submit the 5 completed results immediately without waiting for the remaining 5
 
 ### Requirement: Graceful shutdown
-On SIGINT or SIGTERM, the worker SHALL stop claiming new tasks, wait for in-flight tasks to complete (up to a configurable `shutdownTimeout`, default 30s), submit final results, and then exit.
+On `stop()` being called, the worker SHALL stop claiming new tasks, wait for in-flight tasks to complete (up to a configurable `shutdownTimeout`, default 30s), submit final results, and then resolve. The worker SHALL NOT register signal handlers or call `process.exit()` — signal handling is the consuming application's responsibility.
 
 #### Scenario: Graceful stop
-- **WHEN** SIGINT is received while 3 tasks are running
-- **THEN** no new claims are made, the 3 tasks finish, results are submitted, and the process exits
+- **WHEN** `worker.stop()` is called while 3 tasks are running
+- **THEN** no new claims are made, the 3 tasks finish, results are submitted, and the `stop()` promise resolves
 
 #### Scenario: Shutdown timeout exceeded
-- **WHEN** SIGINT is received and in-flight tasks do not complete within `shutdownTimeout`
-- **THEN** the worker submits results for completed tasks, logs a warning for unfinished tasks, and exits
+- **WHEN** `worker.stop()` is called and in-flight tasks do not complete within `shutdownTimeout`
+- **THEN** the worker submits results for completed tasks, logs a warning for unfinished tasks, and resolves

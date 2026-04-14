@@ -49,3 +49,10 @@ Each handler invocation SHALL receive a `PluginContext` with `config` (the plugi
 #### Scenario: Progress reporting
 - **WHEN** a handler calls `ctx.progress(50, 'Halfway done')`
 - **THEN** in WS mode, a `task:progress` message is sent to the hub; in HTTP mode, the progress is logged locally
+
+### Requirement: Plugin terminology distinction
+Worker plugins (task handler modules registered via `definePlugin`) SHALL be clearly distinguished from hub result plugins (server-side result routing) in all documentation, type names, and API references. Worker plugins handle task execution; hub result plugins process completed task results.
+
+#### Scenario: Documentation references
+- **WHEN** documentation refers to the worker's plugin system
+- **THEN** it uses the term "worker plugin" or "task handler module", never "plugin" without qualification
