@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Overview page
-The hub-dashboard SHALL display an overview page showing: total task counts by status (pending, running, done, failed), a queue depth chart over time, a throughput chart (tasks completed per minute), and current connected worker count.
+The hub-dashboard SHALL display an overview page showing: total task counts by status (pending, running, done, failed), a queue depth chart over time, a throughput chart (tasks completed per minute), and current connected worker count. The page SHALL be rendered using shadcn/ui primitives (Card, etc.) and Tailwind utilities.
 
 #### Scenario: Overview loads
 - **WHEN** the overview page is opened
@@ -12,7 +12,7 @@ The hub-dashboard SHALL display an overview page showing: total task counts by s
 - **THEN** the counts and charts update with fresh data from the hub API
 
 ### Requirement: Workers page
-The hub-dashboard SHALL display a workers page showing a table of all connected workers with columns: ID, project, capabilities (as tags), concurrency, mode (WS/HTTP), last seen, and health indicator.
+The hub-dashboard SHALL display a workers page showing a table of all connected workers with columns: ID, project, capabilities (as tags), concurrency, mode (WS/HTTP), last seen, and health indicator. The table SHALL be rendered using shadcn/ui `Table` primitives and Tailwind utilities.
 
 #### Scenario: Workers listed
 - **WHEN** the workers page is opened and 5 workers are connected
@@ -23,7 +23,7 @@ The hub-dashboard SHALL display a workers page showing a table of all connected 
 - **THEN** the worker is no longer shown (or shown with offline status)
 
 ### Requirement: Tasks page
-The hub-dashboard SHALL display a tasks page with a filterable, paginated task list. Filters: status (multi-select), project (dropdown), type (text search), time range (date picker). Each row shows: ID, type, status, priority, worker, created, started, finished.
+The hub-dashboard SHALL display a tasks page with a filterable, paginated task list. Filters: status (multi-select), project (dropdown), type (text search), time range (date picker). Each row shows: ID, type, status, priority, worker, created, started, finished. The page SHALL be rendered using shadcn/ui primitives (Table, Select, Input, Popover, etc.) and Tailwind utilities.
 
 #### Scenario: Filter by status
 - **WHEN** the user selects "pending" and "running" status filters
@@ -38,7 +38,7 @@ The hub-dashboard SHALL display a tasks page with a filterable, paginated task l
 - **THEN** a detail view shows full payload, error details, progress, and timestamps
 
 ### Requirement: Plugins page
-The hub-dashboard SHALL display a plugins page showing per-project result plugin configuration. Users can view and edit plugin enable/disable status and plugin-specific config (e.g., default webhook URL).
+The hub-dashboard SHALL display a plugins page showing per-project result plugin configuration. Users can view and edit plugin enable/disable status and plugin-specific config (e.g., default webhook URL). The page SHALL be rendered using shadcn/ui primitives (Card, Switch, Input, etc.) and Tailwind utilities.
 
 #### Scenario: View plugin config
 - **WHEN** the plugins page is opened
@@ -49,7 +49,7 @@ The hub-dashboard SHALL display a plugins page showing per-project result plugin
 - **THEN** a `PATCH` request is sent to update the result_plugin table
 
 ### Requirement: Navigation
-The hub-dashboard SHALL have a sidebar or top navigation with links to: Overview, Workers, Tasks, Plugins. All navigation items SHALL be visible to all authenticated users. Permission-based nav filtering SHALL be removed.
+The hub-dashboard SHALL have a sidebar or top navigation with links to: Overview, Workers, Tasks, Plugins. All navigation items SHALL be visible to all authenticated users. Permission-based nav filtering SHALL be removed. The navigation SHALL be rendered using shadcn/ui primitives and Tailwind utilities.
 
 #### Scenario: Navigate between pages
 - **WHEN** the user clicks "Tasks" in the navigation
@@ -73,8 +73,16 @@ The hub-dashboard SHALL use Eden Treaty to call the hub's REST API, ensuring end
 - **THEN** the response is typed as `Task[]` without manual type assertions
 
 ### Requirement: Dark mode support
-The hub-dashboard SHALL support dark mode via a toggle, persisted to localStorage. Default follows system preference.
+The hub-dashboard SHALL support dark mode via a toggle, persisted to localStorage under the key `dispatch-theme`, defaulting to the user's system preference. Dark mode SHALL be applied by toggling the `dark` class on `document.documentElement` (shadcn/ui convention), not by setting a `data-theme` attribute.
 
 #### Scenario: Toggle dark mode
 - **WHEN** the user clicks the dark mode toggle
-- **THEN** the entire dashboard switches to dark theme and the preference is saved
+- **THEN** the `dark` class is added to or removed from `<html>`, the entire dashboard switches theme accordingly, and the new preference is written to `localStorage['dispatch-theme']`
+
+#### Scenario: Restore preference on load
+- **WHEN** the dashboard loads and `localStorage['dispatch-theme']` is `'dark'`
+- **THEN** the `dark` class is present on `<html>` before first paint
+
+#### Scenario: System preference default
+- **WHEN** the dashboard loads and `localStorage['dispatch-theme']` is unset
+- **THEN** the `dark` class presence matches `window.matchMedia('(prefers-color-scheme: dark)').matches`
