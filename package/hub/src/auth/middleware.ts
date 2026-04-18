@@ -1,11 +1,17 @@
 import { Elysia } from 'elysia'
 import { bearer } from '@elysiajs/bearer'
 import type { PrismaClient } from '#/prisma/client'
-import { verifyWorkerToken, type AuthProvider } from './jwt'
-import { resolveWorkerAccess, type WorkerIdentity, type AdminSession } from './resolve'
+import { verifyWorkerToken } from './jwt'
 
-export type { AuthProvider } from './jwt'
-export type { WorkerIdentity, AdminSession } from './resolve'
+export interface WorkerIdentity {
+  sub: string
+  project: string
+}
+
+export interface AdminSession {
+  userId: string
+  isRoot: boolean
+}
 
 const SESSION_COOKIE = 'dispatch_session'
 
@@ -54,20 +60,38 @@ export const adminAuth = (db: PrismaClient) =>
   })
 
 /**
- * Worker auth middleware — reads Bearer JWT, verifies via providers,
- * resolves project access. Produces `worker: WorkerIdentity` in context.
+ * Worker auth middleware — reads Bearer JWT, extracts target project from
+ * the request body, and verifies the JWT against that project's `jwksUri`.
+ * Produces `worker: WorkerIdentity` in context.
  */
-export const workerAuth = (providers: AuthProvider[], db: PrismaClient) =>
+export const workerAuth = (db: PrismaClient) =>
   new Elysia({ name: 'workerAuth' })
     .use(bearer())
-    .derive({ as: 'scoped' }, async ({ bearer: token }) => {
+    .derive({ as: 'scoped' }, async ({ bearer: token, body }) => {
       if (!token) {
         throw authError('Missing authorization token', 401)
       }
 
+      const projectId = (body as { project?: unknown } | undefined)?.project
+      if (typeof projectId !== 'string' || projectId.length === 0) {
+        throw authError('Missing project in request', 401)
+      }
+
+      const project = await db.project.findUnique({
+        where: { id: projectId },
+        select: { id: true, jwksUri: true },
+      })
+
+      if (!project || !project.jwksUri) {
+        throw authError('Invalid project or missing JWKS', 401)
+      }
+
       let claims: Record<string, unknown>
       try {
-        claims = (await verifyWorkerToken(token, providers)) as unknown as Record<string, unknown>
+        claims = (await verifyWorkerToken(token, project.jwksUri)) as unknown as Record<
+          string,
+          unknown
+        >
       } catch (err) {
         const message =
           err instanceof Error && err.message.includes('expired')
@@ -76,12 +100,12 @@ export const workerAuth = (providers: AuthProvider[], db: PrismaClient) =>
         throw authError(message, 401)
       }
 
-      const worker = await resolveWorkerAccess(claims, db)
-
-      if (worker.projects !== '*' && worker.projects.length === 0) {
-        throw authError('No project access', 403)
+      const sub = typeof claims.sub === 'string' ? claims.sub : null
+      if (!sub) {
+        throw authError('Invalid token: missing sub', 401)
       }
 
+      const worker: WorkerIdentity = { sub, project: project.id }
       return { worker }
     })
 
@@ -89,7 +113,6 @@ export const workerAuth = (providers: AuthProvider[], db: PrismaClient) =>
  * Check that a worker has access to a specific project. Throws 403 if not.
  */
 export function requireProjectAccess(identity: WorkerIdentity, projectId: string): void {
-  if (identity.projects === '*') return
-  if (identity.projects.includes(projectId)) return
+  if (identity.project === projectId) return
   throw authError(`No access to project: ${projectId}`, 403)
 }

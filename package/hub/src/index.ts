@@ -11,28 +11,16 @@ import { workersRoutes } from './api/workers'
 import { projectsRoutes } from './api/projects'
 import { auditRoutes } from './api/audit'
 import { authRoutes } from './api/auth'
-import { policyRoutes } from './api/policies'
 import { userRoutes } from './api/users'
 import { startReaper } from './reaper/reaper'
 import { startAgingSweeper } from './reaper/aging'
-import type { AuthProvider } from './auth/jwt'
 import { WsManager } from './ws/manager'
 import { wsRoute } from './ws/route'
 import { ResultPluginRunner } from './plugin/runner'
 import { dashboardRoute } from './dashboard'
 
-const authProviders: AuthProvider[] = []
 const wsManager = new WsManager(db)
 const resultPluginRunner = new ResultPluginRunner(db)
-
-// Add auth provider from environment if configured
-if (env.DISPATCH_AUTH_JWKS_URI && env.DISPATCH_AUTH_ISSUER) {
-  authProviders.push({
-    jwksUri: env.DISPATCH_AUTH_JWKS_URI,
-    issuer: env.DISPATCH_AUTH_ISSUER,
-    ...(env.DISPATCH_AUTH_AUDIENCE ? { audience: env.DISPATCH_AUTH_AUDIENCE } : {}),
-  })
-}
 
 const app = new Elysia()
   .use(
@@ -64,15 +52,14 @@ const app = new Elysia()
   .use(serverTiming({ enabled: env.NODE_ENV === 'development' }))
   .use(models)
   .use(tasksRoutes(db, wsManager))
-  .use(claimRoutes(db, authProviders, resultPluginRunner))
-  .use(heartbeatRoutes(db, authProviders))
+  .use(claimRoutes(db, resultPluginRunner))
+  .use(heartbeatRoutes(db))
   .use(workersRoutes(db))
   .use(projectsRoutes(db))
   .use(auditRoutes(db))
   .use(authRoutes(db, env.NODE_ENV === 'production'))
-  .use(policyRoutes(db))
   .use(userRoutes(db))
-  .use(wsRoute(db, authProviders, wsManager))
+  .use(wsRoute(db, wsManager))
   .use(dashboardRoute(env.DISPATCH_DISABLE_DASHBOARD))
   .listen(env.PORT)
 
@@ -82,11 +69,6 @@ const stopAgingSweeper = startAgingSweeper(db, env.AGING_SWEEPER_INTERVAL)
 
 console.log(`Dispatch Hub running on http://localhost:${env.PORT}`)
 console.log(`OpenAPI docs at http://localhost:${env.PORT}/openapi`)
-if (authProviders.length > 0) {
-  console.log(`Auth providers: ${authProviders.length} (${authProviders.map((p) => p.issuer).join(', ')})`)
-} else {
-  console.log('Auth providers: 0 (worker auth disabled)')
-}
 if (!env.DISPATCH_DISABLE_DASHBOARD) {
   console.log(`Dashboard at http://localhost:${env.PORT}/_dashboard`)
 }

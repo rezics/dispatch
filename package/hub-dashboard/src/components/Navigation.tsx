@@ -16,7 +16,6 @@ export function Navigation() {
     { to: '/workers', label: LL.hub.nav.workers() },
     { to: '/tasks', label: LL.hub.nav.tasks() },
     { to: '/plugins', label: LL.hub.nav.plugins() },
-    { to: '/policies', label: 'Policies' },
     { to: '/users', label: 'Users' },
   ]
 

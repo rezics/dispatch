@@ -35,7 +35,7 @@ async function main() {
       process.exit(1)
     }
 
-    const jwksUri = process.env.DISPATCH_AUTH_JWKS_URI
+    const jwksUri = process.env.DISPATCH_PROJECT_JWKS_URI
 
     const project = await db.project.upsert({
       where: { id: 'rezics' },
@@ -48,30 +48,6 @@ async function main() {
       },
     })
     console.log(`Rezics project ready: ${project.id} (verification: ${project.verification})`)
-
-    // Upsert access policy — find by unique combo of issPattern + claimField
-    const existingPolicy = await db.accessPolicy.findFirst({
-      where: { issPattern: 'rezics-server', claimField: 'sub' },
-    })
-
-    if (existingPolicy) {
-      await db.accessPolicy.update({
-        where: { id: existingPolicy.id },
-        data: { claimPattern: '.*', projectScope: null },
-      })
-      console.log(`Rezics access policy updated: ${existingPolicy.id}`)
-    } else {
-      const policy = await db.accessPolicy.create({
-        data: {
-          issPattern: 'rezics-server',
-          claimField: 'sub',
-          claimPattern: '.*',
-          projectScope: null,
-          createdBy: ROOT_USER_ID,
-        },
-      })
-      console.log(`Rezics access policy created: ${policy.id}`)
-    }
   }
 }
 

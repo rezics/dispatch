@@ -1,12 +1,12 @@
 import { describe, expect, test, beforeAll } from 'bun:test'
 import * as jose from 'jose'
-import { verifyWorkerToken, type AuthProvider } from '../src/auth/jwt'
-import { enforceCapabilities } from '../src/auth/middleware'
+import { verifyWorkerToken } from '../src/auth/jwt'
+import { requireProjectAccess, type WorkerIdentity } from '../src/auth/middleware'
 
 let privateKey: CryptoKey
 let publicKey: CryptoKey
 let jwksServer: ReturnType<typeof Bun.serve> | null = null
-let provider: AuthProvider
+let jwksUri: string
 
 beforeAll(async () => {
   const keyPair = await jose.generateKeyPair('RS256')
@@ -27,11 +27,7 @@ beforeAll(async () => {
     },
   })
 
-  provider = {
-    jwksUri: `http://localhost:${jwksServer.port}/.well-known/jwks.json`,
-    audience: 'dispatch-hub',
-    issuer: 'test-issuer',
-  }
+  jwksUri = `http://localhost:${jwksServer.port}/.well-known/jwks.json`
 })
 
 async function signToken(claims: Record<string, unknown>, options?: { expiresIn?: string }) {
@@ -39,8 +35,6 @@ async function signToken(claims: Record<string, unknown>, options?: { expiresIn?
     .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
     .setIssuedAt()
     .setExpirationTime(options?.expiresIn ?? '1h')
-    .setAudience('dispatch-hub')
-    .setIssuer('test-issuer')
     .setSubject(claims.sub as string)
     .sign(privateKey)
 }
@@ -54,7 +48,7 @@ describe('verifyWorkerToken', () => {
       trust: 'full',
     })
 
-    const claims = await verifyWorkerToken(token, [provider])
+    const claims = await verifyWorkerToken(token, jwksUri)
     expect(claims.sub).toBe('worker-1')
     expect(claims.project).toBe('crawl')
     expect(claims.scope).toBe('worker')
@@ -67,31 +61,18 @@ describe('verifyWorkerToken', () => {
       { expiresIn: '-1s' },
     )
 
-    await expect(verifyWorkerToken(token, [provider])).rejects.toThrow()
-  })
-
-  test('wrong audience rejected', async () => {
-    const token = await new jose.SignJWT({ sub: 'w1', project: 'crawl', scope: 'worker' })
-      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
-      .setIssuedAt()
-      .setExpirationTime('1h')
-      .setAudience('wrong-audience')
-      .setIssuer('test-issuer')
-      .setSubject('w1')
-      .sign(privateKey)
-
-    await expect(verifyWorkerToken(token, [provider])).rejects.toThrow()
+    await expect(verifyWorkerToken(token, jwksUri)).rejects.toThrow()
   })
 })
 
-describe('enforceCapabilities', () => {
-  test('JWT capabilities override registration', () => {
-    const result = enforceCapabilities(['book:crawl'], ['book:crawl', 'book:update'])
-    expect(result).toEqual(['book:crawl'])
+describe('requireProjectAccess', () => {
+  test('matching project passes', () => {
+    const identity: WorkerIdentity = { sub: 'worker-1', project: 'alpha' }
+    expect(() => requireProjectAccess(identity, 'alpha')).not.toThrow()
   })
 
-  test('no JWT capabilities returns all registered', () => {
-    const result = enforceCapabilities(undefined, ['book:crawl', 'book:update'])
-    expect(result).toEqual(['book:crawl', 'book:update'])
+  test('mismatched project throws', () => {
+    const identity: WorkerIdentity = { sub: 'worker-1', project: 'alpha' }
+    expect(() => requireProjectAccess(identity, 'beta')).toThrow()
   })
 })

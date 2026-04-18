@@ -7,7 +7,6 @@ import { Overview } from './pages/Overview'
 import { Workers } from './pages/Workers'
 import { Tasks } from './pages/Tasks'
 import { Plugins } from './pages/Plugins'
-import { Policies } from './pages/Policies'
 import { Users } from './pages/Users'
 import { Login } from './pages/Login'
 import type { ReactNode } from 'react'
@@ -60,7 +59,6 @@ function AppRoutes() {
                   <Route path="/workers" element={<Workers />} />
                   <Route path="/tasks" element={<Tasks />} />
                   <Route path="/plugins" element={<Plugins />} />
-                  <Route path="/policies" element={<Policies />} />
                   <Route path="/users" element={<Users />} />
                 </Routes>
               </main>

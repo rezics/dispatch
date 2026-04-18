@@ -4,25 +4,23 @@ import { claimTasks } from '../queue/claim'
 import { renewLease } from '../queue/renew'
 import { completeTasks, resetRecurringTasks } from '../queue/complete'
 import { workerAuth, requireProjectAccess } from '../auth/middleware'
-import type { AuthProvider } from '../auth/jwt'
 import { enforceReceipt } from '../notary/trust'
 import { ReceiptError } from '../notary/receipt'
 import type { ResultPluginRunner } from '../plugin/runner'
 
-// Re-export for convenience
-export { type AuthProvider } from '../auth/jwt'
-
-export const heartbeatRoutes = (db: PrismaClient, authProviders: AuthProvider[]) =>
+export const heartbeatRoutes = (db: PrismaClient) =>
   new Elysia({ prefix: '/workers', tags: ['Workers'] })
-    .use(workerAuth(authProviders, db))
+    .use(workerAuth(db))
     .post(
       '/heartbeat',
       async ({ body, worker, set }) => {
         try {
+          requireProjectAccess(worker, body.project)
           const result: { count: bigint }[] = await db.$queryRaw`
             UPDATE "Task"
             SET "leaseExpiresAt" = NOW() + INTERVAL '180 seconds'
             WHERE "workerId" = ${body.workerId}
+              AND "project" = ${body.project}
               AND "status" = 'running'
             RETURNING 1
           `
@@ -34,19 +32,20 @@ export const heartbeatRoutes = (db: PrismaClient, authProviders: AuthProvider[])
       },
       {
         body: t.Object({
+          project: t.String(),
           workerId: t.String(),
         }),
         detail: {
           summary: 'Worker heartbeat',
-          description: 'Extend leases for all tasks held by a worker',
+          description: 'Extend leases for all tasks held by a worker on the target project',
           security: [{ Bearer: [] }],
         },
       },
     )
 
-export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], resultPluginRunner?: ResultPluginRunner) =>
+export const claimRoutes = (db: PrismaClient, resultPluginRunner?: ResultPluginRunner) =>
   new Elysia({ prefix: '/tasks', tags: ['Tasks'] })
-    .use(workerAuth(authProviders, db))
+    .use(workerAuth(db))
     .post(
       '/claim',
       async ({ body, worker, set }) => {
@@ -85,6 +84,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
       '/lease/renew',
       async ({ body, worker, set }) => {
         try {
+          requireProjectAccess(worker, body.project)
           await renewLease(db, body.taskIds, worker.sub, body.extend)
           return { ok: true }
         } catch (err) {
@@ -98,6 +98,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
       },
       {
         body: t.Object({
+          project: t.String(),
           taskIds: t.Array(t.String()),
           extend: t.String(),
         }),
@@ -112,35 +113,23 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
       '/complete',
       async ({ body, worker, set }) => {
         try {
+          requireProjectAccess(worker, body.project)
           const doneItems = body.done ?? []
           const failedItems = body.failed ?? []
 
-          // If there are done items, check trust level and enforce receipt
           if (doneItems.length > 0) {
-            const taskIds = [...doneItems.map((d) => d.id), ...failedItems.map((f) => f.id)]
-
-            // Get the project from the first task to look up verification mode
-            const firstTask = await db.task.findFirst({
-              where: { id: { in: taskIds } },
-              select: { project: true },
+            const project = await db.project.findUnique({
+              where: { id: body.project },
             })
 
-            if (firstTask) {
-              requireProjectAccess(worker, firstTask.project)
-
-              const project = await db.project.findUnique({
-                where: { id: firstTask.project },
-              })
-
-              if (project) {
-                await enforceReceipt(
-                  db,
-                  project,
-                  body.receipt as any,
-                  doneItems.map((d) => d.id),
-                  worker.sub,
-                )
-              }
+            if (project) {
+              await enforceReceipt(
+                db,
+                project,
+                body.receipt as any,
+                doneItems.map((d) => d.id),
+                worker.sub,
+              )
             }
           }
 
@@ -185,6 +174,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
       },
       {
         body: t.Object({
+          project: t.String(),
           done: t.Optional(
             t.Array(
               t.Object({
@@ -222,7 +212,8 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
         }),
         detail: {
           summary: 'Complete tasks',
-          description: 'Submit task completion results (done and/or failed). For receipted projects, include a signed CompletionReceipt.',
+          description:
+            'Submit task completion results (done and/or failed). For receipted projects, include a signed CompletionReceipt.',
           security: [{ Bearer: [] }],
         },
       },

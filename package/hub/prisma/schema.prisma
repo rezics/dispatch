@@ -135,14 +135,3 @@ model Session {
   @@index([expiresAt])
 }
 
-model AccessPolicy {
-  id           String   @id @default(uuid())
-  issPattern   String
-  claimField   String
-  claimPattern String
-  projectScope String?
-  createdBy    String
-  createdAt    DateTime @default(now())
-
-  @@map("TrustPolicy")
-}
