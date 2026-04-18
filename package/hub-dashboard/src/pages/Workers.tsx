@@ -1,13 +1,7 @@
 import { useLL } from '../i18n'
 import { useWorkers } from '../api/hooks'
 import { WorkerBadge } from '@rezics/dispatch-ui'
-import type { CSSProperties } from 'react'
-
-const pageStyle: CSSProperties = {
-  padding: '24px',
-  fontFamily: 'var(--dispatch-font-family)',
-  color: 'var(--dispatch-text-primary)',
-}
+import { Card, CardContent } from '@rezics/dispatch-ui/shadcn/card'
 
 interface Worker {
   id: string
@@ -25,12 +19,12 @@ export function Workers() {
   const workers = (data ?? []) as unknown as Worker[]
 
   return (
-    <div style={pageStyle}>
-      <h1 style={{ marginBottom: '24px' }}>{LL.hub.workers.title()}</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">{LL.hub.workers.title()}</h1>
 
-      {isLoading && <div>{LL.common.labels.noData()}</div>}
+      {isLoading && <div className="text-muted-foreground">{LL.common.labels.noData()}</div>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="flex flex-col gap-2">
         {workers.map((w) => (
           <WorkerBadge
             key={w.id}
@@ -48,9 +42,11 @@ export function Workers() {
           />
         ))}
         {!isLoading && workers.length === 0 && (
-          <div style={{ color: 'var(--dispatch-text-muted)', padding: '24px', textAlign: 'center' }}>
-            {LL.common.labels.noData()}
-          </div>
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              {LL.common.labels.noData()}
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

@@ -1,32 +1,33 @@
 import { useState } from 'react'
 import { useLL } from '../i18n'
 import { useTasks } from '../api/hooks'
-import { TaskCard } from '@rezics/dispatch-ui'
 import type { TaskStatus } from '@rezics/dispatch-type'
-import type { CSSProperties } from 'react'
-
-const pageStyle: CSSProperties = {
-  padding: '24px',
-  fontFamily: 'var(--dispatch-font-family)',
-  color: 'var(--dispatch-text-primary)',
-}
-
-const filterBar: CSSProperties = {
-  display: 'flex',
-  gap: '12px',
-  marginBottom: '16px',
-  flexWrap: 'wrap',
-}
-
-const filterInput: CSSProperties = {
-  padding: '6px 10px',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  background: 'var(--dispatch-bg-primary)',
-  color: 'var(--dispatch-text-primary)',
-  fontFamily: 'var(--dispatch-font-family)',
-  fontSize: '13px',
-}
+import { Badge } from '@rezics/dispatch-ui/shadcn/badge'
+import { Button } from '@rezics/dispatch-ui/shadcn/button'
+import { Input } from '@rezics/dispatch-ui/shadcn/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@rezics/dispatch-ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@rezics/dispatch-ui/shadcn/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@rezics/dispatch-ui/shadcn/dialog'
+import { Card, CardContent } from '@rezics/dispatch-ui/shadcn/card'
+import { Progress } from '@rezics/dispatch-ui/shadcn/progress'
 
 const PAGE_SIZE = 50
 
@@ -44,146 +45,225 @@ interface TaskData {
   payload?: unknown
 }
 
+const statusTone: Record<TaskStatus, string> = {
+  pending: 'bg-[var(--color-status-pending)] text-black',
+  running: 'bg-[var(--color-status-running)] text-white',
+  done: 'bg-[var(--color-status-done)] text-white',
+  failed: 'bg-[var(--color-status-failed)] text-white',
+}
+
 export function Tasks() {
   const LL = useLL()
-  const [statusFilter, setStatusFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('')
   const [page, setPage] = useState(0)
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null)
 
   const { data, isLoading } = useTasks({
-    status: statusFilter || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
     type: typeFilter || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
   })
 
   const tasks = (data ?? []) as unknown as TaskData[]
-
   const statusLabel = (status: TaskStatus) => LL.common.status[status]()
 
-  if (selectedTask) {
-    return (
-      <div style={pageStyle}>
-        <button
-          onClick={() => setSelectedTask(null)}
-          style={{ ...filterInput, cursor: 'pointer', marginBottom: '16px' }}
-        >
-          Back
-        </button>
-        <h1 style={{ marginBottom: '16px' }}>{LL.hub.tasks.detail()}</h1>
-        <div style={{ background: 'var(--dispatch-bg-secondary)', border: '1px solid var(--dispatch-border)', borderRadius: 'var(--dispatch-radius)', padding: '16px' }}>
-          <div><strong>{LL.common.labels.id()}:</strong> {selectedTask.id}</div>
-          <div><strong>{LL.common.labels.type()}:</strong> {selectedTask.type}</div>
-          <div><strong>{LL.common.labels.status()}:</strong> {statusLabel(selectedTask.status)}</div>
-          <div><strong>{LL.common.labels.priority()}:</strong> {selectedTask.priority}</div>
-          <div><strong>{LL.common.labels.created()}:</strong> {String(selectedTask.createdAt)}</div>
-          {selectedTask.startedAt && <div><strong>{LL.common.labels.started()}:</strong> {String(selectedTask.startedAt)}</div>}
-          {selectedTask.finishedAt && <div><strong>{LL.common.labels.finished()}:</strong> {String(selectedTask.finishedAt)}</div>}
-          {selectedTask.workerId && <div><strong>{LL.common.labels.worker()}:</strong> {selectedTask.workerId}</div>}
-          {selectedTask.error && (
-            <div style={{ marginTop: '12px' }}>
-              <strong>{LL.hub.tasks.error()}:</strong>
-              <pre style={{ background: 'rgba(220,53,69,0.1)', padding: '8px', borderRadius: '4px', fontFamily: 'var(--dispatch-font-mono)', whiteSpace: 'pre-wrap' }}>
-                {selectedTask.error}
-              </pre>
-            </div>
-          )}
-          {selectedTask.progress && (
-            <div><strong>{LL.common.labels.progress()}:</strong> {selectedTask.progress.percent}% {selectedTask.progress.message && `- ${selectedTask.progress.message}`}</div>
-          )}
-          <div style={{ marginTop: '12px' }}>
-            <strong>{LL.hub.tasks.payload()}:</strong>
-            <pre style={{ background: 'var(--dispatch-bg-tertiary)', padding: '8px', borderRadius: '4px', fontFamily: 'var(--dispatch-font-mono)', whiteSpace: 'pre-wrap', overflow: 'auto', maxHeight: '400px' }}>
-              {JSON.stringify(selectedTask.payload, null, 2)}
-            </pre>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div style={pageStyle}>
-      <h1 style={{ marginBottom: '24px' }}>{LL.hub.tasks.title()}</h1>
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">{LL.hub.tasks.title()}</h1>
 
-      <div style={filterBar}>
-        <select
+      <div className="flex flex-wrap items-center gap-3">
+        <Select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(0) }}
-          style={filterInput}
+          onValueChange={(v) => {
+            setStatusFilter(v)
+            setPage(0)
+          }}
         >
-          <option value="">{LL.hub.tasks.filterByStatus()}</option>
-          <option value="pending">{LL.common.status.pending()}</option>
-          <option value="running">{LL.common.status.running()}</option>
-          <option value="done">{LL.common.status.done()}</option>
-          <option value="failed">{LL.common.status.failed()}</option>
-        </select>
-        <input
-          type="text"
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={LL.hub.tasks.filterByStatus()} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{LL.hub.tasks.filterByStatus()}</SelectItem>
+            <SelectItem value="pending">{LL.common.status.pending()}</SelectItem>
+            <SelectItem value="running">{LL.common.status.running()}</SelectItem>
+            <SelectItem value="done">{LL.common.status.done()}</SelectItem>
+            <SelectItem value="failed">{LL.common.status.failed()}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
           placeholder={LL.hub.tasks.filterByType()}
           value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setPage(0) }}
-          style={filterInput}
+          onChange={(e) => {
+            setTypeFilter(e.target.value)
+            setPage(0)
+          }}
+          className="w-48"
         />
-        {(statusFilter || typeFilter) && (
-          <button onClick={() => { setStatusFilter(''); setTypeFilter(''); setPage(0) }} style={{ ...filterInput, cursor: 'pointer' }}>
-            {LL.common.actions.clear()}
-          </button>
-        )}
-      </div>
-
-      {isLoading && <div>{LL.common.labels.noData()}</div>}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            id={task.id}
-            type={task.type}
-            status={task.status}
-            statusLabel={statusLabel(task.status)}
-            priority={task.priority}
-            progress={task.progress}
-            createdAt={String(task.createdAt)}
-            startedAt={task.startedAt ? String(task.startedAt) : task.startedAt}
-            finishedAt={task.finishedAt ? String(task.finishedAt) : task.finishedAt}
-            workerId={task.workerId}
-            error={task.error}
-            onClick={() => setSelectedTask(task)}
-            labels={{
-              priority: LL.common.labels.priority(),
-              created: LL.common.labels.created(),
-              started: LL.common.labels.started(),
-              finished: LL.common.labels.finished(),
-              worker: LL.common.labels.worker(),
+        {(statusFilter !== 'all' || typeFilter) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setStatusFilter('all')
+              setTypeFilter('')
+              setPage(0)
             }}
-          />
-        ))}
-        {!isLoading && tasks.length === 0 && (
-          <div style={{ color: 'var(--dispatch-text-muted)', padding: '24px', textAlign: 'center' }}>
-            {LL.hub.tasks.noTasks()}
-          </div>
+          >
+            {LL.common.actions.clear()}
+          </Button>
         )}
       </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{LL.common.labels.id()}</TableHead>
+                <TableHead>{LL.common.labels.type()}</TableHead>
+                <TableHead>{LL.common.labels.status()}</TableHead>
+                <TableHead className="text-right">{LL.common.labels.priority()}</TableHead>
+                <TableHead className="w-48">{LL.common.labels.progress()}</TableHead>
+                <TableHead>{LL.common.labels.created()}</TableHead>
+                <TableHead>{LL.common.labels.worker()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow
+                  key={task.id}
+                  onClick={() => setSelectedTask(task)}
+                  className="cursor-pointer"
+                >
+                  <TableCell className="font-mono text-xs">{task.id.slice(0, 8)}</TableCell>
+                  <TableCell className="font-medium">{task.type}</TableCell>
+                  <TableCell>
+                    <Badge className={statusTone[task.status]}>{statusLabel(task.status)}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">{task.priority}</TableCell>
+                  <TableCell>
+                    {task.progress ? (
+                      <div className="flex flex-col gap-1">
+                        <Progress value={task.progress.percent} className="h-2" />
+                        {task.progress.message && (
+                          <span className="text-xs text-muted-foreground">
+                            {task.progress.message} ({task.progress.percent}%)
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {String(task.createdAt)}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {task.workerId ? task.workerId.slice(0, 8) : '—'}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!isLoading && tasks.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    {LL.hub.tasks.noTasks()}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {tasks.length === PAGE_SIZE && (
-        <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
-          <button
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
-            style={{ ...filterInput, cursor: page === 0 ? 'default' : 'pointer' }}
           >
             Previous
-          </button>
-          <span style={{ padding: '6px 10px', fontSize: '13px' }}>
+          </Button>
+          <span className="px-3 py-1 text-sm text-muted-foreground">
             {LL.hub.tasks.page({ current: page + 1, total: page + 2 })}
           </span>
-          <button onClick={() => setPage((p) => p + 1)} style={{ ...filterInput, cursor: 'pointer' }}>
+          <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>
             Next
-          </button>
+          </Button>
         </div>
       )}
+
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedTask && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{LL.hub.tasks.detail()}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <strong>{LL.common.labels.id()}:</strong>{' '}
+                  <span className="font-mono">{selectedTask.id}</span>
+                </div>
+                <div>
+                  <strong>{LL.common.labels.type()}:</strong> {selectedTask.type}
+                </div>
+                <div>
+                  <strong>{LL.common.labels.status()}:</strong> {statusLabel(selectedTask.status)}
+                </div>
+                <div>
+                  <strong>{LL.common.labels.priority()}:</strong> {selectedTask.priority}
+                </div>
+                <div>
+                  <strong>{LL.common.labels.created()}:</strong> {String(selectedTask.createdAt)}
+                </div>
+                {selectedTask.startedAt && (
+                  <div>
+                    <strong>{LL.common.labels.started()}:</strong>{' '}
+                    {String(selectedTask.startedAt)}
+                  </div>
+                )}
+                {selectedTask.finishedAt && (
+                  <div>
+                    <strong>{LL.common.labels.finished()}:</strong>{' '}
+                    {String(selectedTask.finishedAt)}
+                  </div>
+                )}
+                {selectedTask.workerId && (
+                  <div>
+                    <strong>{LL.common.labels.worker()}:</strong>{' '}
+                    <span className="font-mono">{selectedTask.workerId}</span>
+                  </div>
+                )}
+                {selectedTask.progress && (
+                  <div>
+                    <strong>{LL.common.labels.progress()}:</strong>{' '}
+                    {selectedTask.progress.percent}%
+                    {selectedTask.progress.message && ` — ${selectedTask.progress.message}`}
+                  </div>
+                )}
+                {selectedTask.error && (
+                  <div className="space-y-1">
+                    <strong>{LL.hub.tasks.error()}:</strong>
+                    <pre className="rounded-md bg-destructive/10 p-2 font-mono text-xs whitespace-pre-wrap">
+                      {selectedTask.error}
+                    </pre>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <strong>{LL.hub.tasks.payload()}:</strong>
+                  <pre className="max-h-96 overflow-auto rounded-md bg-muted p-2 font-mono text-xs whitespace-pre-wrap">
+                    {JSON.stringify(selectedTask.payload, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

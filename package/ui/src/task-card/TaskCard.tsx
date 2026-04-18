@@ -1,5 +1,8 @@
 import type { TaskStatus } from '@rezics/dispatch-type'
-import type { CSSProperties } from 'react'
+import { Card, CardContent } from '@/shadcn/card'
+import { Badge } from '@/shadcn/badge'
+import { Progress } from '@/shadcn/progress'
+import { cn } from '@/lib/utils'
 
 export interface TaskCardProps {
   id: string
@@ -26,49 +29,11 @@ export interface TaskCardProps {
   }
 }
 
-const statusColors: Record<TaskStatus, string> = {
-  pending: 'var(--dispatch-status-pending)',
-  running: 'var(--dispatch-status-running)',
-  done: 'var(--dispatch-status-done)',
-  failed: 'var(--dispatch-status-failed)',
-}
-
-const cardStyle: CSSProperties = {
-  fontFamily: 'var(--dispatch-font-family)',
-  background: 'var(--dispatch-bg-primary)',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  padding: '12px 16px',
-  boxShadow: 'var(--dispatch-shadow)',
-  cursor: 'pointer',
-  color: 'var(--dispatch-text-primary)',
-}
-
-const badgeStyle = (status: TaskStatus): CSSProperties => ({
-  display: 'inline-block',
-  padding: '2px 8px',
-  borderRadius: '4px',
-  fontSize: '12px',
-  fontWeight: 600,
-  color: '#fff',
-  background: statusColors[status],
-})
-
-const progressBarContainer: CSSProperties = {
-  background: 'var(--dispatch-progress-bg)',
-  borderRadius: '4px',
-  height: '8px',
-  marginTop: '8px',
-  overflow: 'hidden',
-}
-
-const metaStyle: CSSProperties = {
-  fontSize: '12px',
-  color: 'var(--dispatch-text-secondary)',
-  marginTop: '8px',
-  display: 'flex',
-  gap: '12px',
-  flexWrap: 'wrap',
+const statusTone: Record<TaskStatus, string> = {
+  pending: 'bg-[var(--color-status-pending)] text-black',
+  running: 'bg-[var(--color-status-running)] text-white',
+  done: 'bg-[var(--color-status-done)] text-white',
+  failed: 'bg-[var(--color-status-failed)] text-white',
 }
 
 export function TaskCard({
@@ -87,61 +52,62 @@ export function TaskCard({
   labels = {},
 }: TaskCardProps) {
   return (
-    <div style={cardStyle} onClick={onClick} role="button" tabIndex={0}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ fontWeight: 600 }}>{type}</span>
-          <span style={{ color: 'var(--dispatch-text-muted)', marginLeft: '8px', fontSize: '12px' }}>
-            {id.slice(0, 8)}
-          </span>
-        </div>
-        <span style={badgeStyle(status)}>{statusLabel}</span>
-      </div>
-
-      {progress && (
-        <div>
-          <div style={progressBarContainer}>
-            <div
-              style={{
-                width: `${Math.min(100, Math.max(0, progress.percent))}%`,
-                height: '100%',
-                background: 'var(--dispatch-progress-fill)',
-                borderRadius: '4px',
-                transition: 'width 0.3s ease',
-              }}
-            />
+    <Card
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      className={cn('cursor-pointer transition-colors hover:bg-accent/40')}
+    >
+      <CardContent className="space-y-2 py-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold">{type}</span>
+            <span className="text-xs font-mono text-muted-foreground">{id.slice(0, 8)}</span>
           </div>
-          {progress.message && (
-            <div style={{ fontSize: '11px', color: 'var(--dispatch-text-secondary)', marginTop: '4px' }}>
-              {progress.message} ({progress.percent}%)
-            </div>
+          <Badge className={statusTone[status]}>{statusLabel}</Badge>
+        </div>
+
+        {progress && (
+          <div className="space-y-1">
+            <Progress value={Math.min(100, Math.max(0, progress.percent))} className="h-2" />
+            {progress.message && (
+              <p className="text-xs text-muted-foreground">
+                {progress.message} ({progress.percent}%)
+              </p>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-md bg-destructive/10 px-2 py-1.5 font-mono text-xs text-destructive">
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+          <span>
+            {labels.priority ?? 'Priority'}: {priority}
+          </span>
+          <span>
+            {labels.created ?? 'Created'}: {createdAt}
+          </span>
+          {startedAt && (
+            <span>
+              {labels.started ?? 'Started'}: {startedAt}
+            </span>
+          )}
+          {finishedAt && (
+            <span>
+              {labels.finished ?? 'Finished'}: {finishedAt}
+            </span>
+          )}
+          {workerId && (
+            <span>
+              {labels.worker ?? 'Worker'}: {workerId.slice(0, 8)}
+            </span>
           )}
         </div>
-      )}
-
-      {error && (
-        <div
-          style={{
-            marginTop: '8px',
-            padding: '6px 8px',
-            background: 'rgba(220, 53, 69, 0.1)',
-            borderRadius: '4px',
-            fontSize: '12px',
-            color: 'var(--dispatch-status-failed)',
-            fontFamily: 'var(--dispatch-font-mono)',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      <div style={metaStyle}>
-        <span>{labels.priority ?? 'Priority'}: {priority}</span>
-        <span>{labels.created ?? 'Created'}: {createdAt}</span>
-        {startedAt && <span>{labels.started ?? 'Started'}: {startedAt}</span>}
-        {finishedAt && <span>{labels.finished ?? 'Finished'}: {finishedAt}</span>}
-        {workerId && <span>{labels.worker ?? 'Worker'}: {workerId.slice(0, 8)}</span>}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

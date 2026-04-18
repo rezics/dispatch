@@ -8,8 +8,10 @@
     "skipLibCheck": true,
     "declaration": false,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "#/*": ["../hub/*"]
+      "#/*": ["../hub/*"],
+      "@/*": ["./src/*"]
     },
     "outDir": "dist",
     "rootDir": "src"

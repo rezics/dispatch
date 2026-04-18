@@ -10,7 +10,6 @@ import { Plugins } from './pages/Plugins'
 import { Policies } from './pages/Policies'
 import { Users } from './pages/Users'
 import { Login } from './pages/Login'
-import '@rezics/dispatch-ui/src/theme.css'
 import type { ReactNode } from 'react'
 
 const queryClient = new QueryClient({
@@ -27,7 +26,7 @@ function AuthGuard({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--dispatch-bg-secondary)', color: 'var(--dispatch-text-secondary)' }}>
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading...
       </div>
     )
@@ -53,9 +52,9 @@ function AppRoutes() {
         path="/*"
         element={
           <AuthGuard>
-            <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--dispatch-bg-secondary)' }}>
+            <div className="flex min-h-screen bg-background text-foreground">
               <Navigation />
-              <main style={{ flex: 1, overflow: 'auto' }}>
+              <main className="flex-1 overflow-auto">
                 <Routes>
                   <Route path="/" element={<Overview />} />
                   <Route path="/workers" element={<Workers />} />

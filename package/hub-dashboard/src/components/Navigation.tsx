@@ -1,33 +1,10 @@
 import { NavLink } from 'react-router-dom'
+import { Moon, Sun, LogOut } from 'lucide-react'
+import { Button } from '@rezics/dispatch-ui/shadcn/button'
 import { useTheme } from './ThemeProvider'
 import { useAuth } from '../auth/AuthContext'
 import { useLL } from '../i18n'
-import type { CSSProperties } from 'react'
-
-const sidebarStyle: CSSProperties = {
-  width: '220px',
-  minHeight: '100vh',
-  background: 'var(--dispatch-bg-secondary)',
-  borderRight: '1px solid var(--dispatch-border)',
-  padding: '16px 0',
-  display: 'flex',
-  flexDirection: 'column',
-}
-
-const linkStyle: CSSProperties = {
-  display: 'block',
-  padding: '10px 20px',
-  color: 'var(--dispatch-text-primary)',
-  textDecoration: 'none',
-  fontSize: '14px',
-  fontFamily: 'var(--dispatch-font-family)',
-}
-
-const activeLinkStyle: CSSProperties = {
-  ...linkStyle,
-  background: 'var(--dispatch-bg-tertiary)',
-  fontWeight: 600,
-}
+import { cn } from '../lib/cn'
 
 export function Navigation() {
   const { theme, toggle } = useTheme()
@@ -44,53 +21,34 @@ export function Navigation() {
   ]
 
   return (
-    <nav style={sidebarStyle}>
-      <div style={{ padding: '0 20px 16px', fontWeight: 700, fontSize: '16px', color: 'var(--dispatch-text-primary)', fontFamily: 'var(--dispatch-font-family)' }}>
-        Dispatch
+    <nav className="flex w-56 min-h-screen flex-col border-r border-border bg-muted/40 py-4">
+      <div className="px-5 pb-4 text-base font-bold">Dispatch</div>
+      <div className="flex flex-col">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            className={({ isActive }) =>
+              cn(
+                'px-5 py-2.5 text-sm text-foreground hover:bg-accent transition-colors',
+                isActive && 'bg-accent font-semibold',
+              )
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </div>
-      {navItems.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.to === '/'}
-          style={({ isActive }) => (isActive ? activeLinkStyle : linkStyle)}
-        >
-          {item.label}
-        </NavLink>
-      ))}
-      <div style={{ marginTop: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <button
-          onClick={toggle}
-          style={{
-            background: 'var(--dispatch-bg-tertiary)',
-            border: '1px solid var(--dispatch-border)',
-            borderRadius: 'var(--dispatch-radius)',
-            padding: '6px 12px',
-            color: 'var(--dispatch-text-primary)',
-            cursor: 'pointer',
-            fontFamily: 'var(--dispatch-font-family)',
-            fontSize: '13px',
-            width: '100%',
-          }}
-        >
+      <div className="mt-auto px-3 pt-4 flex flex-col gap-2">
+        <Button variant="outline" size="sm" onClick={toggle} className="w-full justify-start gap-2">
+          {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
           {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-        </button>
-        <button
-          onClick={logout}
-          style={{
-            background: 'none',
-            border: '1px solid var(--dispatch-border)',
-            borderRadius: 'var(--dispatch-radius)',
-            padding: '6px 12px',
-            color: 'var(--dispatch-text-secondary)',
-            cursor: 'pointer',
-            fontFamily: 'var(--dispatch-font-family)',
-            fontSize: '13px',
-            width: '100%',
-          }}
-        >
+        </Button>
+        <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start gap-2 text-muted-foreground">
+          <LogOut className="size-4" />
           Sign Out
-        </button>
+        </Button>
       </div>
     </nav>
   )

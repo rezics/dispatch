@@ -1,5 +1,15 @@
-import type { CSSProperties } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts'
 
 export interface QueueDataPoint {
   time: string
@@ -23,24 +33,6 @@ export interface QueueChartProps {
   }
 }
 
-const containerStyle: CSSProperties = {
-  fontFamily: 'var(--dispatch-font-family)',
-  background: 'var(--dispatch-bg-primary)',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  padding: '16px',
-  color: 'var(--dispatch-text-primary)',
-}
-
-const emptyStyle: CSSProperties = {
-  ...containerStyle,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '200px',
-  color: 'var(--dispatch-text-muted)',
-}
-
 export function QueueChart({
   queueData,
   throughputData,
@@ -48,23 +40,27 @@ export function QueueChart({
   labels = {},
 }: QueueChartProps) {
   if (queueData.length === 0) {
-    return <div style={emptyStyle}>{emptyMessage}</div>
+    return (
+      <div className="flex min-h-52 items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
+        {emptyMessage}
+      </div>
+    )
   }
 
   return (
-    <div style={containerStyle}>
-      <div style={{ width: '100%', height: 250 }}>
+    <div className="rounded-lg border bg-card p-4 text-card-foreground">
+      <div className="h-64 w-full">
         <ResponsiveContainer>
           <LineChart data={queueData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--dispatch-border)" />
-            <XAxis dataKey="time" stroke="var(--dispatch-text-secondary)" fontSize={11} />
-            <YAxis stroke="var(--dispatch-text-secondary)" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <XAxis dataKey="time" stroke="var(--color-muted-foreground)" fontSize={11} />
+            <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
             <Tooltip
               contentStyle={{
-                background: 'var(--dispatch-bg-secondary)',
-                border: '1px solid var(--dispatch-border)',
-                borderRadius: 'var(--dispatch-radius)',
-                color: 'var(--dispatch-text-primary)',
+                background: 'var(--color-popover)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--color-popover-foreground)',
               }}
             />
             <Legend />
@@ -72,7 +68,7 @@ export function QueueChart({
               type="monotone"
               dataKey="pending"
               name={labels.pending ?? 'Pending'}
-              stroke="var(--dispatch-chart-line-pending)"
+              stroke="var(--color-status-pending)"
               strokeWidth={2}
               dot={false}
             />
@@ -80,7 +76,7 @@ export function QueueChart({
               type="monotone"
               dataKey="running"
               name={labels.running ?? 'Running'}
-              stroke="var(--dispatch-chart-line-running)"
+              stroke="var(--color-status-running)"
               strokeWidth={2}
               dot={false}
             />
@@ -89,24 +85,24 @@ export function QueueChart({
       </div>
 
       {throughputData && throughputData.length > 0 && (
-        <div style={{ width: '100%', height: 200, marginTop: '16px' }}>
+        <div className="mt-4 h-52 w-full">
           <ResponsiveContainer>
             <BarChart data={throughputData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--dispatch-border)" />
-              <XAxis dataKey="time" stroke="var(--dispatch-text-secondary)" fontSize={11} />
-              <YAxis stroke="var(--dispatch-text-secondary)" fontSize={11} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis dataKey="time" stroke="var(--color-muted-foreground)" fontSize={11} />
+              <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
               <Tooltip
                 contentStyle={{
-                  background: 'var(--dispatch-bg-secondary)',
-                  border: '1px solid var(--dispatch-border)',
-                  borderRadius: 'var(--dispatch-radius)',
-                  color: 'var(--dispatch-text-primary)',
+                  background: 'var(--color-popover)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius)',
+                  color: 'var(--color-popover-foreground)',
                 }}
               />
               <Bar
                 dataKey="completed"
                 name={labels.completed ?? 'Completed'}
-                fill="var(--dispatch-chart-bar-throughput)"
+                fill="var(--color-status-done)"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

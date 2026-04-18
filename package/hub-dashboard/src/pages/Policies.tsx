@@ -1,51 +1,18 @@
-import { useState, type FormEvent, type CSSProperties } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { env } from '../env'
-
-const tableStyle: CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  fontSize: '13px',
-  fontFamily: 'var(--dispatch-font-family)',
-}
-
-const thStyle: CSSProperties = {
-  textAlign: 'left',
-  padding: '8px 12px',
-  borderBottom: '2px solid var(--dispatch-border)',
-  color: 'var(--dispatch-text-secondary)',
-  fontWeight: 600,
-  fontSize: '12px',
-}
-
-const tdStyle: CSSProperties = {
-  padding: '8px 12px',
-  borderBottom: '1px solid var(--dispatch-border)',
-  color: 'var(--dispatch-text-primary)',
-}
-
-const inputStyle: CSSProperties = {
-  padding: '6px 10px',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  background: 'var(--dispatch-bg-secondary)',
-  color: 'var(--dispatch-text-primary)',
-  fontFamily: 'var(--dispatch-font-family)',
-  fontSize: '13px',
-  width: '100%',
-  boxSizing: 'border-box',
-}
-
-const btnStyle: CSSProperties = {
-  padding: '6px 14px',
-  border: 'none',
-  borderRadius: 'var(--dispatch-radius)',
-  background: 'var(--dispatch-accent)',
-  color: '#fff',
-  cursor: 'pointer',
-  fontSize: '13px',
-  fontFamily: 'var(--dispatch-font-family)',
-}
+import { Button } from '@rezics/dispatch-ui/shadcn/button'
+import { Input } from '@rezics/dispatch-ui/shadcn/input'
+import { Label } from '@rezics/dispatch-ui/shadcn/label'
+import { Card, CardContent } from '@rezics/dispatch-ui/shadcn/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@rezics/dispatch-ui/shadcn/table'
 
 interface Policy {
   id: string
@@ -101,7 +68,10 @@ export function Policies() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${env.VITE_API_URL}/policies/${id}`, { method: 'DELETE', credentials: 'include' })
+      const res = await fetch(`${env.VITE_API_URL}/policies/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
       if (!res.ok) throw new Error('Failed to delete policy')
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['policies'] }),
@@ -113,96 +83,118 @@ export function Policies() {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h1 style={{ margin: 0, fontSize: '20px', color: 'var(--dispatch-text-primary)', fontFamily: 'var(--dispatch-font-family)' }}>
-          Access Policies
-        </h1>
-        <button style={btnStyle} onClick={() => setShowForm(!showForm)}>
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Access Policies</h1>
+        <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Cancel' : 'New Policy'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            background: 'var(--dispatch-bg-primary)',
-            border: '1px solid var(--dispatch-border)',
-            borderRadius: 'var(--dispatch-radius)',
-            padding: '16px',
-            marginBottom: '16px',
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '12px',
-          }}
-        >
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Issuer Pattern</label>
-            <input style={inputStyle} value={form.issPattern} onChange={(e) => setForm({ ...form, issPattern: e.target.value })} placeholder="*.rezics.com" required />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Claim Field</label>
-            <input style={inputStyle} value={form.claimField} onChange={(e) => setForm({ ...form, claimField: e.target.value })} placeholder="role" required />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Claim Pattern (regex)</label>
-            <input style={inputStyle} value={form.claimPattern} onChange={(e) => setForm({ ...form, claimPattern: e.target.value })} placeholder="^owner$" required />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: 'var(--dispatch-text-secondary)', marginBottom: '4px' }}>Project Scope (optional project ID)</label>
-            <input style={inputStyle} value={form.projectScope} onChange={(e) => setForm({ ...form, projectScope: e.target.value })} placeholder="my-project" />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button type="submit" style={btnStyle} disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create Policy'}
-            </button>
-          </div>
-        </form>
+        <Card>
+          <CardContent className="py-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="iss">Issuer Pattern</Label>
+                <Input
+                  id="iss"
+                  value={form.issPattern}
+                  onChange={(e) => setForm({ ...form, issPattern: e.target.value })}
+                  placeholder="*.rezics.com"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="claim-field">Claim Field</Label>
+                <Input
+                  id="claim-field"
+                  value={form.claimField}
+                  onChange={(e) => setForm({ ...form, claimField: e.target.value })}
+                  placeholder="role"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="claim-pattern">Claim Pattern (regex)</Label>
+                <Input
+                  id="claim-pattern"
+                  value={form.claimPattern}
+                  onChange={(e) => setForm({ ...form, claimPattern: e.target.value })}
+                  placeholder="^owner$"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="scope">Project Scope (optional)</Label>
+                <Input
+                  id="scope"
+                  value={form.projectScope}
+                  onChange={(e) => setForm({ ...form, projectScope: e.target.value })}
+                  placeholder="my-project"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Button type="submit" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Creating...' : 'Create Policy'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      <div style={{ background: 'var(--dispatch-bg-primary)', border: '1px solid var(--dispatch-border)', borderRadius: 'var(--dispatch-radius)', overflow: 'auto' }}>
-        {isLoading ? (
-          <p style={{ padding: '16px', color: 'var(--dispatch-text-secondary)' }}>Loading...</p>
-        ) : (
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Issuer Pattern</th>
-                <th style={thStyle}>Claim Field</th>
-                <th style={thStyle}>Claim Pattern</th>
-                <th style={thStyle}>Project Scope</th>
-                <th style={thStyle}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {policies?.map((p) => (
-                <tr key={p.id}>
-                  <td style={tdStyle}><code>{p.issPattern}</code></td>
-                  <td style={tdStyle}><code>{p.claimField}</code></td>
-                  <td style={tdStyle}><code>{p.claimPattern}</code></td>
-                  <td style={tdStyle}>{p.projectScope ?? '(global)'}</td>
-                  <td style={tdStyle}>
-                    <button
-                      onClick={() => deleteMutation.mutate(p.id)}
-                      style={{ ...btnStyle, background: 'var(--dispatch-error, #ef4444)', fontSize: '12px', padding: '4px 10px' }}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {(!policies || policies.length === 0) && (
-                <tr>
-                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'center', color: 'var(--dispatch-text-secondary)' }}>
-                    No access policies configured
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <p className="p-4 text-sm text-muted-foreground">Loading...</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Issuer Pattern</TableHead>
+                  <TableHead>Claim Field</TableHead>
+                  <TableHead>Claim Pattern</TableHead>
+                  <TableHead>Project Scope</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {policies?.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <code>{p.issPattern}</code>
+                    </TableCell>
+                    <TableCell>
+                      <code>{p.claimField}</code>
+                    </TableCell>
+                    <TableCell>
+                      <code>{p.claimPattern}</code>
+                    </TableCell>
+                    <TableCell>{p.projectScope ?? '(global)'}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteMutation.mutate(p.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!policies || policies.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-20 text-center text-muted-foreground">
+                      No access policies configured
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

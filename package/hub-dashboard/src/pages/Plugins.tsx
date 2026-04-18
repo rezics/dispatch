@@ -1,21 +1,6 @@
 import { useLL } from '../i18n'
 import { useProjects } from '../api/hooks'
-import type { CSSProperties } from 'react'
-
-const pageStyle: CSSProperties = {
-  padding: '24px',
-  fontFamily: 'var(--dispatch-font-family)',
-  color: 'var(--dispatch-text-primary)',
-}
-
-const cardStyle: CSSProperties = {
-  background: 'var(--dispatch-bg-primary)',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  padding: '16px',
-  boxShadow: 'var(--dispatch-shadow)',
-  marginBottom: '12px',
-}
+import { Card, CardContent } from '@rezics/dispatch-ui/shadcn/card'
 
 interface Project {
   id: string
@@ -30,31 +15,37 @@ export function Plugins() {
   const projects = (data ?? []) as unknown as Project[]
 
   return (
-    <div style={pageStyle}>
-      <h1 style={{ marginBottom: '24px' }}>{LL.hub.plugins.title()}</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">{LL.hub.plugins.title()}</h1>
 
-      <h2 style={{ marginBottom: '12px' }}>{LL.hub.plugins.resultPlugins()}</h2>
+      <div className="space-y-3">
+        <h2 className="text-lg font-medium">{LL.hub.plugins.resultPlugins()}</h2>
 
-      {isLoading && <div>{LL.common.labels.noData()}</div>}
+        {isLoading && <div className="text-muted-foreground">{LL.common.labels.noData()}</div>}
 
-      {projects.map((project) => (
-        <div key={project.id} style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <strong>{project.id}</strong>
-              <span style={{ marginLeft: '8px', fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>
-                Verification: {project.verification}
-              </span>
-            </div>
-          </div>
+        <div className="space-y-2">
+          {projects.map((project) => (
+            <Card key={project.id}>
+              <CardContent className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-3">
+                  <strong className="font-semibold">{project.id}</strong>
+                  <span className="text-xs text-muted-foreground">
+                    Verification: {project.verification}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      ))}
 
-      {!isLoading && projects.length === 0 && (
-        <div style={{ color: 'var(--dispatch-text-muted)', padding: '24px', textAlign: 'center' }}>
-          {LL.common.labels.noData()}
-        </div>
-      )}
+        {!isLoading && projects.length === 0 && (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              {LL.common.labels.noData()}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

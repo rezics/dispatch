@@ -1,27 +1,25 @@
 import { useLL } from '../i18n'
 import { useStats, useWorkers } from '../api/hooks'
 import { QueueChart } from '@rezics/dispatch-ui'
-import type { CSSProperties } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@rezics/dispatch-ui/shadcn/card'
 
-const pageStyle: CSSProperties = {
-  padding: '24px',
-  fontFamily: 'var(--dispatch-font-family)',
-  color: 'var(--dispatch-text-primary)',
+interface StatCardProps {
+  label: string
+  value: string | number
+  accent?: string
 }
 
-const cardGrid: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-  gap: '16px',
-  marginBottom: '24px',
-}
-
-const statCard: CSSProperties = {
-  background: 'var(--dispatch-bg-primary)',
-  border: '1px solid var(--dispatch-border)',
-  borderRadius: 'var(--dispatch-radius)',
-  padding: '16px',
-  boxShadow: 'var(--dispatch-shadow)',
+function StatCard({ label, value, accent }: StatCardProps) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-1 py-4">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-3xl font-bold" style={accent ? { color: accent } : undefined}>
+          {value}
+        </span>
+      </CardContent>
+    </Card>
+  )
 }
 
 export function Overview() {
@@ -29,54 +27,56 @@ export function Overview() {
   const stats = useStats('default')
   const workers = useWorkers()
 
-  const statusData = stats.data as { pending?: number; running?: number; done?: number; failed?: number } | undefined
+  const statusData = stats.data as
+    | { pending?: number; running?: number; done?: number; failed?: number }
+    | undefined
 
   return (
-    <div style={pageStyle}>
-      <h1 style={{ marginBottom: '24px' }}>{LL.hub.overview.title()}</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">{LL.hub.overview.title()}</h1>
 
-      <div style={cardGrid}>
-        <div style={statCard}>
-          <div style={{ fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>{LL.common.status.pending()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--dispatch-status-pending)' }}>
-            {statusData?.pending ?? '-'}
-          </div>
-        </div>
-        <div style={statCard}>
-          <div style={{ fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>{LL.common.status.running()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--dispatch-status-running)' }}>
-            {statusData?.running ?? '-'}
-          </div>
-        </div>
-        <div style={statCard}>
-          <div style={{ fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>{LL.common.status.done()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--dispatch-status-done)' }}>
-            {statusData?.done ?? '-'}
-          </div>
-        </div>
-        <div style={statCard}>
-          <div style={{ fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>{LL.common.status.failed()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--dispatch-status-failed)' }}>
-            {statusData?.failed ?? '-'}
-          </div>
-        </div>
-        <div style={statCard}>
-          <div style={{ fontSize: '12px', color: 'var(--dispatch-text-secondary)' }}>{LL.hub.workers.title()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 700 }}>
-            {workers.data ? (workers.data as unknown[]).length : '-'}
-          </div>
-        </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+        <StatCard
+          label={LL.common.status.pending()}
+          value={statusData?.pending ?? '-'}
+          accent="var(--color-status-pending)"
+        />
+        <StatCard
+          label={LL.common.status.running()}
+          value={statusData?.running ?? '-'}
+          accent="var(--color-status-running)"
+        />
+        <StatCard
+          label={LL.common.status.done()}
+          value={statusData?.done ?? '-'}
+          accent="var(--color-status-done)"
+        />
+        <StatCard
+          label={LL.common.status.failed()}
+          value={statusData?.failed ?? '-'}
+          accent="var(--color-status-failed)"
+        />
+        <StatCard
+          label={LL.hub.workers.title()}
+          value={workers.data ? (workers.data as unknown[]).length : '-'}
+        />
       </div>
 
-      <h2 style={{ marginBottom: '12px' }}>{LL.hub.overview.queueDepth()}</h2>
-      <QueueChart
-        queueData={[]}
-        emptyMessage={LL.common.labels.noData()}
-        labels={{
-          pending: LL.common.status.pending(),
-          running: LL.common.status.running(),
-        }}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>{LL.hub.overview.queueDepth()}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QueueChart
+            queueData={[]}
+            emptyMessage={LL.common.labels.noData()}
+            labels={{
+              pending: LL.common.status.pending(),
+              running: LL.common.status.running(),
+            }}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
