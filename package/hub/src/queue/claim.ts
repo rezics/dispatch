@@ -19,6 +19,7 @@ export async function claimTasks(
   project: string,
   count: number,
   lease: string,
+  type?: string,
 ) {
   if (count > MAX_CLAIM_COUNT) {
     throw new Error(`Claim count ${count} exceeds maximum of ${MAX_CLAIM_COUNT}`)
@@ -36,6 +37,15 @@ export async function claimTasks(
     ? `NOW() + INTERVAL '${proj.maxTaskHoldTime} seconds'`
     : 'NULL'
 
+  const typeFilter = type ? `AND "type" = $5` : ''
+  const params: unknown[] = [
+    workerId,
+    `${leaseSeconds} seconds`,
+    project,
+    count,
+  ]
+  if (type) params.push(type)
+
   const tasks: { id: string }[] = await db.$queryRawUnsafe(
     `UPDATE "Task"
     SET
@@ -50,15 +60,13 @@ export async function claimTasks(
       WHERE "project" = $3
         AND "status" = 'pending'
         AND "scheduledAt" <= NOW()
+        ${typeFilter}
       ORDER BY "priority" DESC, "scheduledAt" ASC
       LIMIT $4
       FOR UPDATE SKIP LOCKED
     )
     RETURNING "id"`,
-    workerId,
-    `${leaseSeconds} seconds`,
-    project,
-    count,
+    ...params,
   )
 
   if (tasks.length === 0) return []

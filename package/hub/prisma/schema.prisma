@@ -25,6 +25,7 @@ model Project {
   maxTaskHoldTime  Int?
   agingRate        Float?
   agingMaxPriority Int?     @default(1000)
+  allowedTypes     String[] @default([])
   createdAt        DateTime @default(now())
 
   workers       Worker[]

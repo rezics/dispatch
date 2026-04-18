@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia'
 import type { PrismaClient } from '#/prisma/client'
-import { createTask } from '../queue/create'
+import { createTask, TaskTypeNotAllowedError } from '../queue/create'
 import type { WsManager } from '../ws/manager'
 
 export const tasksRoutes = (db: PrismaClient, wsManager?: WsManager) =>
@@ -8,12 +8,20 @@ export const tasksRoutes = (db: PrismaClient, wsManager?: WsManager) =>
     .post(
       '',
       async ({ body, set }) => {
-        const task = await createTask(db, {
-          ...body,
-          scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
-        })
-        set.status = 201
-        return task
+        try {
+          const task = await createTask(db, {
+            ...body,
+            scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+          })
+          set.status = 201
+          return task
+        } catch (err) {
+          if (err instanceof TaskTypeNotAllowedError) {
+            set.status = 400
+            return { error: err.message }
+          }
+          throw err
+        }
       },
       {
         body: t.Object({

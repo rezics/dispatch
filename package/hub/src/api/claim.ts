@@ -59,6 +59,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
             project,
             body.count,
             body.lease,
+            body.type,
           )
           return { tasks, count: tasks.length }
         } catch (err) {
@@ -71,6 +72,7 @@ export const claimRoutes = (db: PrismaClient, authProviders: AuthProvider[], res
           project: t.String(),
           count: t.Integer({ minimum: 1, maximum: 5000 }),
           lease: t.String(),
+          type: t.Optional(t.String()),
         }),
         detail: {
           summary: 'Claim tasks',

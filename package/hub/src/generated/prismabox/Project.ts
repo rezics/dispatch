@@ -13,6 +13,7 @@ export const ProjectPlain = t.Object(
     maxTaskHoldTime: __nullable__(t.Integer()),
     agingRate: __nullable__(t.Number()),
     agingMaxPriority: __nullable__(t.Integer()),
+    allowedTypes: t.Array(t.String(), { additionalProperties: false }),
     createdAt: t.Date(),
   },
   { additionalProperties: false },
@@ -75,6 +76,9 @@ export const ProjectPlainInputCreate = t.Object(
     maxTaskHoldTime: t.Optional(__nullable__(t.Integer())),
     agingRate: t.Optional(__nullable__(t.Number())),
     agingMaxPriority: t.Optional(__nullable__(t.Integer())),
+    allowedTypes: t.Optional(
+      t.Array(t.String(), { additionalProperties: false }),
+    ),
   },
   { additionalProperties: false },
 );
@@ -87,6 +91,9 @@ export const ProjectPlainInputUpdate = t.Object(
     maxTaskHoldTime: t.Optional(__nullable__(t.Integer())),
     agingRate: t.Optional(__nullable__(t.Number())),
     agingMaxPriority: t.Optional(__nullable__(t.Integer())),
+    allowedTypes: t.Optional(
+      t.Array(t.String(), { additionalProperties: false }),
+    ),
   },
   { additionalProperties: false },
 );
@@ -202,6 +209,7 @@ export const ProjectWhere = t.Partial(
           maxTaskHoldTime: t.Integer(),
           agingRate: t.Number(),
           agingMaxPriority: t.Integer(),
+          allowedTypes: t.Array(t.String(), { additionalProperties: false }),
           createdAt: t.Date(),
         },
         { additionalProperties: false },
@@ -245,6 +253,9 @@ export const ProjectWhereUnique = t.Recursive(
               maxTaskHoldTime: t.Integer(),
               agingRate: t.Number(),
               agingMaxPriority: t.Integer(),
+              allowedTypes: t.Array(t.String(), {
+                additionalProperties: false,
+              }),
               createdAt: t.Date(),
             },
             { additionalProperties: false },
@@ -266,6 +277,7 @@ export const ProjectSelect = t.Partial(
       maxTaskHoldTime: t.Boolean(),
       agingRate: t.Boolean(),
       agingMaxPriority: t.Boolean(),
+      allowedTypes: t.Boolean(),
       createdAt: t.Boolean(),
       workers: t.Boolean(),
       tasks: t.Boolean(),
@@ -304,6 +316,9 @@ export const ProjectOrderBy = t.Partial(
         additionalProperties: false,
       }),
       agingMaxPriority: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      allowedTypes: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       createdAt: t.Union([t.Literal("asc"), t.Literal("desc")], {

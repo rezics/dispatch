@@ -40,6 +40,7 @@ export const TaskRelations = t.Object(
         maxTaskHoldTime: __nullable__(t.Integer()),
         agingRate: __nullable__(t.Number()),
         agingMaxPriority: __nullable__(t.Integer()),
+        allowedTypes: t.Array(t.String(), { additionalProperties: false }),
         createdAt: t.Date(),
       },
       { additionalProperties: false },

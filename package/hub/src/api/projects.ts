@@ -76,6 +76,7 @@ export const projectsRoutes = (db: PrismaClient) =>
           receiptSecret: t.Optional(t.String()),
           jwksUri: t.Optional(t.String()),
           maxTaskHoldTime: t.Optional(t.Nullable(t.Integer({ minimum: 1 }))),
+          allowedTypes: t.Optional(t.Array(t.String())),
         }),
         detail: {
           summary: 'Create project',
@@ -105,6 +106,7 @@ export const projectsRoutes = (db: PrismaClient) =>
           receiptSecret: t.Optional(t.String()),
           jwksUri: t.Optional(t.String()),
           maxTaskHoldTime: t.Optional(t.Nullable(t.Integer({ minimum: 1 }))),
+          allowedTypes: t.Optional(t.Array(t.String())),
         }),
         detail: {
           summary: 'Update project',
