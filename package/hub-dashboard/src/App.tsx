@@ -20,16 +20,29 @@ const queryClient = new QueryClient({
   },
 })
 
+function LoadingShell() {
+  return (
+    <div className="relative flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div aria-hidden className="absolute inset-0 bg-grid-dots opacity-60" />
+      <div className="relative flex flex-col items-center gap-4">
+        <div className="relative h-1 w-56 overflow-hidden border border-border">
+          <div
+            className="absolute inset-y-0 w-1/3 animate-sweep"
+            style={{ backgroundColor: 'var(--color-signal-amber)' }}
+          />
+        </div>
+        <div className="font-mono text-[11px] tracking-wider-caps text-muted-foreground">
+          Dispatch // establishing link
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AuthGuard({ children }: { children: ReactNode }) {
   const { authenticated, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
-        Loading...
-      </div>
-    )
-  }
+  if (loading) return <LoadingShell />
 
   if (!authenticated) {
     return <Navigate to="/login" replace />
@@ -51,16 +64,42 @@ function AppRoutes() {
         path="/*"
         element={
           <AuthGuard>
-            <div className="flex min-h-screen bg-background text-foreground">
+            <div className="relative flex min-h-screen bg-background text-foreground">
+              <div
+                aria-hidden
+                className="pointer-events-none fixed inset-0 bg-grid-dots opacity-[0.35]"
+                style={{ maskImage: 'linear-gradient(to bottom, black, rgba(0,0,0,0.4))' }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none fixed inset-0 bg-grain opacity-[0.6] mix-blend-overlay"
+              />
               <Navigation />
-              <main className="flex-1 overflow-auto">
-                <Routes>
-                  <Route path="/" element={<Overview />} />
-                  <Route path="/workers" element={<Workers />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/plugins" element={<Plugins />} />
-                  <Route path="/users" element={<Users />} />
-                </Routes>
+              <main className="relative flex-1 overflow-auto">
+                <div className="mx-auto w-full max-w-7xl px-6 py-6 md:px-10 md:py-8">
+                  <Routes>
+                    <Route path="/" element={<Overview />} />
+                    <Route path="/workers" element={<Workers />} />
+                    <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/plugins" element={<Plugins />} />
+                    <Route path="/users" element={<Users />} />
+                  </Routes>
+                </div>
+                <footer className="border-t border-border/60 px-6 py-5 md:px-10">
+                  <div className="mx-auto flex w-full max-w-7xl items-center justify-between font-mono text-[10px] tracking-wider-caps text-muted-foreground">
+                    <span>// Dispatch Signal Room</span>
+                    <span>
+                      uplink{' '}
+                      <span
+                        className="ml-1 inline-block size-1.5 rounded-full align-middle"
+                        style={{
+                          backgroundColor: 'var(--color-signal-phosphor)',
+                          boxShadow: '0 0 6px var(--color-signal-phosphor)',
+                        }}
+                      />
+                    </span>
+                  </div>
+                </footer>
               </main>
             </div>
           </AuthGuard>

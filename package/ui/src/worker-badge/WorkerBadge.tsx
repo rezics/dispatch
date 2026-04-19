@@ -1,4 +1,3 @@
-import { Badge } from '@/shadcn/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/tooltip'
 import { cn } from '@/lib/utils'
 
@@ -28,9 +27,9 @@ function getHealthStatus(lastSeen: Date | string): HealthStatus {
 }
 
 const healthColor: Record<HealthStatus, string> = {
-  healthy: 'bg-[var(--color-health-healthy)]',
-  stale: 'bg-[var(--color-health-stale)]',
-  offline: 'bg-[var(--color-health-offline)]',
+  healthy: 'var(--color-health-healthy)',
+  stale: 'var(--color-health-stale)',
+  offline: 'var(--color-health-offline)',
 }
 
 export function WorkerBadge({
@@ -43,30 +42,44 @@ export function WorkerBadge({
 }: WorkerBadgeProps) {
   const health = getHealthStatus(lastSeen)
   const healthLabel = labels[health] ?? health
+  const color = healthColor[health]
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2 text-card-foreground">
+    <div className="flex items-center gap-3 border border-border bg-card px-4 py-3 text-card-foreground">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={cn('size-2.5 shrink-0 rounded-full', healthColor[health])} />
+            <div
+              className={cn(
+                'size-2 shrink-0 rounded-full',
+                health !== 'offline' && 'animate-signal-pulse',
+              )}
+              style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
+            />
           </TooltipTrigger>
-          <TooltipContent>{healthLabel}</TooltipContent>
+          <TooltipContent className="font-mono text-[10.5px] uppercase tracking-[0.14em]">
+            {healthLabel}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <span className="font-mono text-sm font-semibold">{id.slice(0, 8)}</span>
-      <Badge variant="secondary" className="uppercase">
+      <span className="font-mono text-sm font-semibold text-foreground">{id.slice(0, 10)}</span>
+      <span
+        className="border border-border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
+      >
         {mode}
-      </Badge>
+      </span>
       <div className="flex flex-wrap gap-1">
         {capabilities.map((cap) => (
-          <Badge key={cap} variant="outline" className="text-xs font-normal">
+          <span
+            key={cap}
+            className="border border-border/80 bg-background/40 px-1.5 py-0.5 font-mono text-[10px] text-foreground/90"
+          >
             {cap}
-          </Badge>
+          </span>
         ))}
       </div>
-      <span className="ml-auto text-xs text-muted-foreground">
-        {labels.concurrency ?? 'Concurrency'}: {concurrency}
+      <span className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+        {labels.concurrency ?? 'Concurrency'} ×{concurrency}
       </span>
     </div>
   )

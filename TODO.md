@@ -5,3 +5,4 @@
 - [ ] add github actions
 - [ ] If the hub goes offline, the worker will automatically cancel the execution of tasks.
 - [ ] Add unitId to task payload, for update
+- [ ] project manager need add to dashboard
