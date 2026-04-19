@@ -1,15 +1,11 @@
 ## Requirements
 
 ### Requirement: Worker authentication via JWT
-Worker routes SHALL be protected by a middleware that extracts the Bearer JWT, verifies it against configured auth providers (JWKS), and resolves project access via access policies. No session cookie authentication is accepted on worker routes. The `AuthProvider` interface SHALL have an optional `audience` field. When `audience` is undefined, JWT audience validation SHALL be skipped.
+Worker routes SHALL be protected by a middleware that extracts the Bearer JWT, looks up the target project from the request, and verifies the JWT against the project's `jwksUri`. No session cookie authentication is accepted on worker routes. No global auth providers or access policies are used.
 
-#### Scenario: Valid JWT with policy match
-- **WHEN** a request to a worker route includes a valid Bearer JWT that matches at least one access policy
-- **THEN** the request is authorized and the handler receives the worker's `sub` and accessible projects
-
-#### Scenario: Valid JWT with no policy match
-- **WHEN** a JWT is valid but matches no access policies
-- **THEN** the hub returns HTTP 403 (authenticated but no project access)
+#### Scenario: Valid JWT verified against project JWKS
+- **WHEN** a request to a worker route includes a valid Bearer JWT and targets a project with a configured `jwksUri`
+- **THEN** the request is authorized and the handler receives the worker's `sub` and project
 
 #### Scenario: Invalid or expired JWT
 - **WHEN** a worker route receives an invalid or expired JWT
@@ -19,36 +15,20 @@ Worker routes SHALL be protected by a middleware that extracts the Bearer JWT, v
 - **WHEN** a request to a worker route includes a session cookie but no Bearer JWT
 - **THEN** the hub returns HTTP 401 (session cookies are not accepted for worker routes)
 
-#### Scenario: JWT without aud claim and provider has no audience
-- **WHEN** a JWT has no `aud` claim and the matching auth provider has `audience: undefined`
-- **THEN** the JWT is accepted (audience check is skipped)
-
-#### Scenario: JWT without aud claim but provider requires audience
-- **WHEN** a JWT has no `aud` claim but the matching auth provider has `audience: "rezics"`
-- **THEN** the hub returns HTTP 401 (audience mismatch)
-
 ### Requirement: WorkerIdentity type
-The worker auth middleware SHALL produce a `WorkerIdentity` type containing `sub: string` (from JWT) and `projects: string[] | '*'` (resolved from access policies). No permissions array.
+The worker auth middleware SHALL produce a `WorkerIdentity` type containing `sub: string` (from JWT) and `project: string` (the verified project). No `projects` array or `'*'` global access.
 
-#### Scenario: Worker identity has project list
-- **WHEN** a JWT matches policies for projects "alpha" and "beta"
-- **THEN** the route handler receives `{ sub: "worker-1", projects: ["alpha", "beta"] }`
-
-#### Scenario: Worker identity with global access
-- **WHEN** a JWT matches a policy with `projectScope: null`
-- **THEN** the route handler receives `{ sub: "worker-1", projects: "*" }`
+#### Scenario: Worker identity has single project
+- **WHEN** a JWT with `sub: "worker-1"` is verified against project "alpha"
+- **THEN** the route handler receives `{ sub: "worker-1", project: "alpha" }`
 
 ### Requirement: Project access check on worker routes
-Worker route handlers that operate on a specific project SHALL verify the worker has access to that project. A worker with `projects: "*"` has access to all projects.
+Worker route handlers that operate on a specific project SHALL verify the request's target project matches the authenticated project in `WorkerIdentity`.
 
-#### Scenario: Worker accesses allowed project
-- **WHEN** a worker with `projects: ["alpha"]` calls `POST /tasks/claim` for project "alpha"
+#### Scenario: Worker accesses verified project
+- **WHEN** a worker authenticated for project "alpha" calls `POST /tasks/claim` for project "alpha"
 - **THEN** the request is authorized
 
-#### Scenario: Worker accesses disallowed project
-- **WHEN** a worker with `projects: ["alpha"]` calls `POST /tasks/claim` for project "beta"
+#### Scenario: Worker accesses different project
+- **WHEN** a worker authenticated for project "alpha" calls `POST /tasks/claim` for project "beta"
 - **THEN** the hub returns HTTP 403
-
-#### Scenario: Global worker accesses any project
-- **WHEN** a worker with `projects: "*"` calls `POST /tasks/claim` for any project
-- **THEN** the request is authorized
