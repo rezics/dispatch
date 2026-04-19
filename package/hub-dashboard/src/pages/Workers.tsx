@@ -44,7 +44,7 @@ function WorkerBlade({ worker, delay }: { worker: Worker; delay: number }) {
   return (
     <div
       className={cn(
-        'reveal group relative border border-border bg-card/70 p-5 corner-ticks transition-all',
+        'reveal group relative border border-border bg-card/70 p-6 corner-ticks transition-all',
         'hover:border-foreground/30 hover:bg-card',
       )}
       style={{ animationDelay: `${delay}ms` }}
@@ -76,7 +76,7 @@ function WorkerBlade({ worker, delay }: { worker: Worker; delay: number }) {
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border/70 pt-4">
+      <div className="mt-5 grid grid-cols-3 gap-4 border-t border-border/70 pt-5">
         <div>
           <div className="font-mono text-[10px] tracking-wider-caps text-muted-foreground">
             mode
@@ -109,7 +109,7 @@ function WorkerBlade({ worker, delay }: { worker: Worker; delay: number }) {
       </div>
 
       {worker.capabilities.length > 0 && (
-        <div className="mt-4 border-t border-border/70 pt-3">
+        <div className="mt-5 border-t border-border/70 pt-4">
           <div className="mb-1.5 font-mono text-[10px] tracking-wider-caps text-muted-foreground">
             capabilities
           </div>
@@ -144,7 +144,7 @@ export function Workers() {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow="SECTOR 02 · FLEET"
         title={LL.hub.workers.title()}
@@ -172,7 +172,7 @@ export function Workers() {
       />
 
       {workers.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {workers.map((w, i) => (
             <WorkerBlade key={w.id} worker={w} delay={i * 45} />
           ))}

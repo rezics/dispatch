@@ -28,7 +28,7 @@ export function Navigation() {
   ]
 
   return (
-    <nav className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col border-r border-border bg-card/60">
+    <nav className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-border bg-card/60">
       {/* Wordmark */}
       <div className="relative border-b border-border px-5 py-6">
         <div
@@ -54,8 +54,8 @@ export function Navigation() {
       </div>
 
       {/* Nav list */}
-      <div className="flex flex-col gap-0.5 px-3 pt-5">
-        <div className="mb-2 px-2 font-mono text-[10px] tracking-wider-caps text-muted-foreground">
+      <div className="flex flex-col gap-1 px-3 pt-6">
+        <div className="mb-3 px-2 font-mono text-[10px] tracking-wider-caps text-muted-foreground">
           · Console
         </div>
         {navItems.map((item) => {
@@ -67,7 +67,7 @@ export function Navigation() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm text-foreground/80 transition-colors',
+                  'group relative flex items-center gap-3 border border-transparent px-3 py-3 text-sm text-foreground/80 transition-colors',
                   'hover:border-border hover:bg-accent/50 hover:text-foreground',
                   isActive &&
                     'border-border bg-accent/70 text-foreground shadow-[inset_3px_0_0_var(--color-signal-amber)]',
@@ -105,7 +105,7 @@ export function Navigation() {
       <div className="flex-1" />
 
       {/* Operator footer */}
-      <div className="border-t border-border px-4 py-4 space-y-3">
+      <div className="border-t border-border px-4 py-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span

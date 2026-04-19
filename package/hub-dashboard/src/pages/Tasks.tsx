@@ -91,7 +91,7 @@ export function Tasks() {
   const hasFilters = statusFilter !== 'all' || typeFilter
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow="SECTOR 03 · TRANSACTIONS"
         title={LL.hub.tasks.title()}
@@ -100,7 +100,7 @@ export function Tasks() {
       />
 
       {/* Filter console */}
-      <SectionCard label="// FILTER BUS" title="Query" contentClassName="p-5">
+      <SectionCard label="// FILTER BUS" title="Query" contentClassName="p-6">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
@@ -171,14 +171,14 @@ export function Tasks() {
           <table className="w-full caption-bottom text-sm">
             <thead className="border-b border-border bg-background/40">
               <tr className="text-left font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
-                <th className="w-10 px-4 py-3"></th>
-                <th className="px-4 py-3 font-medium">ID</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 text-right font-medium">Pri.</th>
-                <th className="w-64 px-4 py-3 font-medium">Progress</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-                <th className="px-4 py-3 font-medium">Worker</th>
+                <th className="w-10 px-4 py-3.5"></th>
+                <th className="px-4 py-3.5 font-medium">ID</th>
+                <th className="px-4 py-3.5 font-medium">Type</th>
+                <th className="px-4 py-3.5 font-medium">Status</th>
+                <th className="px-4 py-3.5 text-right font-medium">Pri.</th>
+                <th className="w-64 px-4 py-3.5 font-medium">Progress</th>
+                <th className="px-4 py-3.5 font-medium">Created</th>
+                <th className="px-4 py-3.5 font-medium">Worker</th>
               </tr>
             </thead>
             <tbody>
@@ -192,22 +192,22 @@ export function Tasks() {
                   )}
                   style={{ animationDelay: `${Math.min(i, 20) * 20}ms` }}
                 >
-                  <td className="w-10 px-4 py-3 text-muted-foreground">
+                  <td className="w-10 px-4 py-4 text-muted-foreground">
                     <ChevronRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" style={{ color: 'var(--color-signal-amber)' }} />
                   </td>
-                  <td className="px-4 py-3 font-mono text-[11.5px] text-foreground/90 numeric-tabular">
+                  <td className="px-4 py-4 font-mono text-[11.5px] text-foreground/90 numeric-tabular">
                     {task.id.slice(0, 10)}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">
+                  <td className="px-4 py-4 font-mono text-xs text-foreground">
                     {task.type}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
                     <StatusPill status={task.status} label={statusLabel(task.status)} />
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs numeric-tabular">
+                  <td className="px-4 py-4 text-right font-mono text-xs numeric-tabular">
                     {task.priority}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
                     {task.progress ? (
                       <div className="flex flex-col gap-1">
                         <ProgressBar percent={task.progress.percent} />
@@ -221,10 +221,10 @@ export function Tasks() {
                       <span className="font-mono text-[11px] text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground numeric-tabular">
+                  <td className="px-4 py-4 font-mono text-[11px] text-muted-foreground numeric-tabular">
                     {formatTime(task.createdAt)}
                   </td>
-                  <td className="px-4 py-3 font-mono text-[11.5px] text-foreground/80">
+                  <td className="px-4 py-4 font-mono text-[11.5px] text-foreground/80">
                     {task.workerId ? (
                       task.workerId.slice(0, 10)
                     ) : (

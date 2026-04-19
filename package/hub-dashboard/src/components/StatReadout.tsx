@@ -33,7 +33,7 @@ export function StatReadout({
   return (
     <div
       className={cn(
-        'reveal relative border border-border bg-card/70 p-5 corner-ticks transition-all',
+        'reveal relative border border-border bg-card/70 p-6 corner-ticks transition-all',
         'hover:border-foreground/30 hover:bg-card',
       )}
       style={{ animationDelay: `${delay}ms` }}
@@ -48,7 +48,7 @@ export function StatReadout({
           </span>
         )}
       </div>
-      <div className="mt-5 flex items-end justify-between gap-3">
+      <div className="mt-6 flex items-end justify-between gap-3">
         <div
           className="font-mono text-4xl font-medium leading-none numeric-tabular"
           style={{ color }}
@@ -63,7 +63,7 @@ export function StatReadout({
           />
         )}
       </div>
-      {suffix && <div className="mt-3 font-mono text-[11px] text-muted-foreground">{suffix}</div>}
+      {suffix && <div className="mt-4 font-mono text-[11px] text-muted-foreground">{suffix}</div>}
     </div>
   )
 }

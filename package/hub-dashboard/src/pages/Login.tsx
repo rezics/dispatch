@@ -117,8 +117,8 @@ export function Login() {
             </div>
           </div>
 
-          <div className="relative border border-border bg-card p-7 corner-ticks">
-            <div className="mb-6 space-y-1.5">
+          <div className="relative border border-border bg-card p-8 corner-ticks">
+            <div className="mb-7 space-y-2">
               <div className="font-mono text-[10.5px] tracking-wider-caps"
                 style={{ color: 'var(--color-signal-amber)' }}>
                 // ACCESS TERMINAL

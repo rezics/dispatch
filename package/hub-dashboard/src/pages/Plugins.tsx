@@ -29,7 +29,7 @@ export function Plugins() {
   const projects = (data ?? []) as unknown as Project[]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow="SECTOR 04 · EXTENSIONS"
         title={LL.hub.plugins.title()}
@@ -56,7 +56,7 @@ export function Plugins() {
             {projects.map((project, i) => (
               <li
                 key={project.id}
-                className={cn('reveal flex items-center gap-4 px-5 py-4 transition-colors hover:bg-accent/30')}
+                className={cn('reveal flex items-center gap-4 px-6 py-4 transition-colors hover:bg-accent/30')}
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 <span

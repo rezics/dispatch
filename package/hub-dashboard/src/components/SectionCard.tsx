@@ -30,7 +30,7 @@ export function SectionCard({
         className,
       )}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-6 py-4">
         <div className="flex items-baseline gap-3">
           <span
             className="font-mono text-[10.5px] tracking-wider-caps text-signal-amber"

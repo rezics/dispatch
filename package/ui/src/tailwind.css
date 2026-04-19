@@ -26,7 +26,7 @@
   --color-popover: hsl(40 22% 98%);
   --color-popover-foreground: hsl(220 25% 8%);
 
-  --color-primary: hsl(22 92% 44%);
+  --color-primary: hsl(354 85% 58%);
   --color-primary-foreground: hsl(40 25% 98%);
 
   --color-secondary: hsl(40 12% 90%);
@@ -38,37 +38,37 @@
   --color-accent: hsl(40 14% 88%);
   --color-accent-foreground: hsl(220 25% 10%);
 
-  --color-destructive: hsl(358 74% 48%);
+  --color-destructive: hsl(10 78% 46%);
   --color-destructive-foreground: hsl(40 25% 98%);
 
   --color-border: hsl(40 10% 82%);
   --color-input: hsl(40 10% 82%);
-  --color-ring: hsl(22 92% 44%);
+  --color-ring: hsl(354 85% 58%);
 
   /* Signal tokens — LEDs on a control panel */
-  --color-signal-amber: hsl(32 100% 52%);
+  --color-signal-amber: hsl(354 87% 62%);
   --color-signal-phosphor: hsl(152 72% 40%);
   --color-signal-cyan: hsl(195 92% 46%);
-  --color-signal-crimson: hsl(358 74% 54%);
+  --color-signal-crimson: hsl(10 78% 52%);
   --color-signal-violet: hsl(268 72% 58%);
 
   --color-status-pending: hsl(45 96% 52%);
   --color-status-running: hsl(195 92% 46%);
   --color-status-done: hsl(152 72% 38%);
-  --color-status-failed: hsl(358 74% 54%);
+  --color-status-failed: hsl(10 78% 52%);
 
   --color-severity-info: hsl(195 92% 46%);
   --color-severity-warn: hsl(45 96% 52%);
-  --color-severity-error: hsl(358 74% 54%);
+  --color-severity-error: hsl(10 78% 52%);
 
   --color-health-healthy: hsl(152 72% 40%);
   --color-health-stale: hsl(45 96% 52%);
-  --color-health-offline: hsl(358 74% 54%);
+  --color-health-offline: hsl(10 78% 52%);
 
-  --color-chart-1: hsl(32 100% 52%);
+  --color-chart-1: hsl(354 87% 62%);
   --color-chart-2: hsl(152 72% 42%);
   --color-chart-3: hsl(195 92% 52%);
-  --color-chart-4: hsl(358 74% 60%);
+  --color-chart-4: hsl(45 96% 55%);
   --color-chart-5: hsl(268 72% 62%);
 
   --color-grid-line: hsl(40 10% 80% / 0.55);
@@ -85,7 +85,7 @@
   --color-popover: hsl(222 20% 7%);
   --color-popover-foreground: hsl(40 16% 94%);
 
-  --color-primary: hsl(32 100% 58%);
+  --color-primary: hsl(354 87% 67%);
   --color-primary-foreground: hsl(222 30% 6%);
 
   --color-secondary: hsl(222 14% 14%);
@@ -97,36 +97,36 @@
   --color-accent: hsl(222 14% 16%);
   --color-accent-foreground: hsl(40 16% 96%);
 
-  --color-destructive: hsl(358 74% 58%);
+  --color-destructive: hsl(10 82% 62%);
   --color-destructive-foreground: hsl(40 16% 96%);
 
   --color-border: hsl(222 12% 18%);
   --color-input: hsl(222 12% 18%);
-  --color-ring: hsl(32 100% 58%);
+  --color-ring: hsl(354 87% 67%);
 
-  --color-signal-amber: hsl(32 100% 62%);
+  --color-signal-amber: hsl(354 87% 67%);
   --color-signal-phosphor: hsl(152 72% 58%);
   --color-signal-cyan: hsl(195 92% 60%);
-  --color-signal-crimson: hsl(358 78% 66%);
+  --color-signal-crimson: hsl(10 82% 64%);
   --color-signal-violet: hsl(268 74% 72%);
 
   --color-status-pending: hsl(45 96% 58%);
   --color-status-running: hsl(195 92% 62%);
   --color-status-done: hsl(152 72% 52%);
-  --color-status-failed: hsl(358 78% 66%);
+  --color-status-failed: hsl(10 82% 64%);
 
   --color-severity-info: hsl(195 92% 62%);
   --color-severity-warn: hsl(45 96% 58%);
-  --color-severity-error: hsl(358 78% 66%);
+  --color-severity-error: hsl(10 82% 64%);
 
   --color-health-healthy: hsl(152 72% 52%);
   --color-health-stale: hsl(45 96% 58%);
-  --color-health-offline: hsl(358 78% 66%);
+  --color-health-offline: hsl(10 82% 64%);
 
-  --color-chart-1: hsl(32 100% 62%);
+  --color-chart-1: hsl(354 87% 67%);
   --color-chart-2: hsl(152 72% 56%);
   --color-chart-3: hsl(195 92% 62%);
-  --color-chart-4: hsl(358 78% 68%);
+  --color-chart-4: hsl(45 96% 60%);
   --color-chart-5: hsl(268 74% 72%);
 
   --color-grid-line: hsl(40 10% 60% / 0.08);

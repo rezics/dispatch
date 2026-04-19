@@ -42,7 +42,7 @@ export function Overview() {
     (statusData?.failed ?? 0)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow="SECTOR 01 · LIVE TELEMETRY"
         title={LL.hub.overview.title()}
@@ -58,7 +58,7 @@ export function Overview() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <StatReadout
           label={LL.common.status.pending()}
           value={statusData?.pending ?? '—'}
@@ -105,13 +105,13 @@ export function Overview() {
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-6 xl:gap-8 lg:grid-cols-[2fr_1fr]">
         <SectionCard
           label="// QUEUE DEPTH"
           title={LL.hub.overview.queueDepth()}
           meta="live · 5s"
         >
-          <div className="p-5">
+          <div className="p-6">
             <QueueChart
               queueData={[]}
               emptyMessage={LL.common.labels.noData()}
@@ -126,7 +126,7 @@ export function Overview() {
         <SectionCard label="// FLEET STATUS" title={LL.hub.workers.title()}>
           <ul className="divide-y divide-border/60">
             {workerList.length === 0 && (
-              <li className="px-5 py-8 text-center font-mono text-[11px] text-muted-foreground">
+              <li className="px-6 py-10 text-center font-mono text-[11px] text-muted-foreground">
                 {LL.common.labels.noData()}
               </li>
             )}
@@ -139,7 +139,7 @@ export function Overview() {
                   ? 'var(--color-health-stale)'
                   : 'var(--color-health-offline)'
               return (
-                <li key={w.id} className="flex items-center gap-3 px-5 py-3">
+                <li key={w.id} className="flex items-center gap-3 px-6 py-3.5">
                   <span
                     className="size-2 shrink-0 rounded-full"
                     style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
@@ -155,7 +155,7 @@ export function Overview() {
             })}
           </ul>
           {workerList.length > 6 && (
-            <div className="border-t border-border/70 px-5 py-3 font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
+            <div className="border-t border-border/70 px-6 py-3.5 font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
               + {workerList.length - 6} more units
               <MoveUpRight className="ml-1 inline size-3" />
             </div>

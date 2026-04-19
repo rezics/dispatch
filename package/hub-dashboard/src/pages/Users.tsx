@@ -72,7 +72,7 @@ export function Users() {
   const userCount = users?.length ?? 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         eyebrow="SECTOR 05 · OPERATORS"
         title="Users"
@@ -89,7 +89,7 @@ export function Users() {
         }
       />
 
-      <div className="flex items-center gap-6 border-y border-border/70 py-3 font-mono text-[11px]">
+      <div className="flex items-center gap-6 border-y border-border/70 py-4 font-mono text-[11px]">
         <div>
           <span className="tracking-wider-caps text-muted-foreground">total</span>{' '}
           <span className="ml-1 text-foreground numeric-tabular">{userCount}</span>
@@ -106,7 +106,7 @@ export function Users() {
       </div>
 
       {showForm && (
-        <SectionCard label="// NEW OPERATOR" title="Register identity" contentClassName="p-5">
+        <SectionCard label="// NEW OPERATOR" title="Register identity" contentClassName="p-6">
           <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-64 space-y-1.5">
               <Label htmlFor="user-id" className="font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
@@ -157,7 +157,7 @@ export function Users() {
             {users.map((u, i) => (
               <li
                 key={u.id}
-                className={cn('reveal flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-accent/30')}
+                className={cn('reveal flex items-center gap-4 px-6 py-4 transition-colors hover:bg-accent/30')}
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 <span

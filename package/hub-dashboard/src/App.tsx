@@ -76,7 +76,7 @@ function AppRoutes() {
               />
               <Navigation />
               <main className="relative flex-1 overflow-auto">
-                <div className="mx-auto w-full max-w-7xl px-6 py-6 md:px-10 md:py-8">
+                <div className="mx-auto w-full max-w-[1400px] px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-14">
                   <Routes>
                     <Route path="/" element={<Overview />} />
                     <Route path="/workers" element={<Workers />} />
@@ -85,8 +85,8 @@ function AppRoutes() {
                     <Route path="/users" element={<Users />} />
                   </Routes>
                 </div>
-                <footer className="border-t border-border/60 px-6 py-5 md:px-10">
-                  <div className="mx-auto flex w-full max-w-7xl items-center justify-between font-mono text-[10px] tracking-wider-caps text-muted-foreground">
+                <footer className="border-t border-border/60 px-6 py-6 md:px-12 lg:px-16">
+                  <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between font-mono text-[10px] tracking-wider-caps text-muted-foreground">
                     <span>// Dispatch Signal Room</span>
                     <span>
                       uplink{' '}
