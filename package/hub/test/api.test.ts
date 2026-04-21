@@ -187,4 +187,132 @@ describe('API', () => {
       // and is handled by the full app with auth
     })
   })
+
+  describe('project deletion', () => {
+    async function createSession(opts: { isRoot: boolean; userId?: string }) {
+      const userId = opts.userId ?? (opts.isRoot ? 'root-user' : 'plain-user')
+      await db.user.upsert({
+        where: { id: userId },
+        update: { isRoot: opts.isRoot },
+        create: { id: userId, isRoot: opts.isRoot },
+      })
+      const token = `test-token-${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      await db.session.create({
+        data: {
+          token,
+          userId,
+          expiresAt: new Date(Date.now() + 60_000),
+        },
+      })
+      return `dispatch_session=${token}`
+    }
+
+    beforeEach(async () => {
+      await db.session.deleteMany()
+      await db.user.deleteMany()
+    })
+
+    test('DELETE /projects/:id without session returns 401', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del', { method: 'DELETE' }),
+      )
+      expect(res.status).toBe(401)
+    })
+
+    test('DELETE /projects/:id with non-root session returns 403', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      const cookie = await createSession({ isRoot: false })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del', {
+          method: 'DELETE',
+          headers: { cookie },
+        }),
+      )
+      expect(res.status).toBe(403)
+    })
+
+    test('DELETE /projects/:id with tasks returns 409 and task count', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      await db.task.createMany({
+        data: [
+          { project: 'proj-del', type: 'x', payload: {}, status: 'pending' },
+          { project: 'proj-del', type: 'x', payload: {}, status: 'done' },
+        ],
+      })
+      const cookie = await createSession({ isRoot: true })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del', {
+          method: 'DELETE',
+          headers: { cookie },
+        }),
+      )
+      expect(res.status).toBe(409)
+      const body = await res.json()
+      expect(body.taskCount).toBe(2)
+      expect(typeof body.error).toBe('string')
+
+      const stillThere = await db.project.findUnique({ where: { id: 'proj-del' } })
+      expect(stillThere).not.toBeNull()
+    })
+
+    test('DELETE /projects/:id with zero tasks returns 200 and removes project', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      const cookie = await createSession({ isRoot: true })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del', {
+          method: 'DELETE',
+          headers: { cookie },
+        }),
+      )
+      expect(res.status).toBe(200)
+
+      const gone = await db.project.findUnique({ where: { id: 'proj-del' } })
+      expect(gone).toBeNull()
+    })
+
+    test('DELETE /projects/:id/tasks with mismatched confirm returns 400', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      await db.task.create({
+        data: { project: 'proj-del', type: 'x', payload: {}, status: 'pending' },
+      })
+      const cookie = await createSession({ isRoot: true })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del/tasks', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', cookie },
+          body: JSON.stringify({ confirm: 'wrong' }),
+        }),
+      )
+      expect(res.status).toBe(400)
+
+      const remaining = await db.task.count({ where: { project: 'proj-del' } })
+      expect(remaining).toBe(1)
+    })
+
+    test('DELETE /projects/:id/tasks with matching confirm clears all tasks', async () => {
+      await db.project.create({ data: { id: 'proj-del' } })
+      await db.task.createMany({
+        data: [
+          { project: 'proj-del', type: 'x', payload: {}, status: 'pending' },
+          { project: 'proj-del', type: 'x', payload: {}, status: 'running' },
+          { project: 'proj-del', type: 'x', payload: {}, status: 'done' },
+        ],
+      })
+      const cookie = await createSession({ isRoot: true })
+      const res = await app.handle(
+        new Request('http://localhost/projects/proj-del/tasks', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', cookie },
+          body: JSON.stringify({ confirm: 'proj-del' }),
+        }),
+      )
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.deleted).toBe(3)
+
+      const remaining = await db.task.count({ where: { project: 'proj-del' } })
+      expect(remaining).toBe(0)
+    })
+  })
 })

@@ -273,11 +273,231 @@ type RootTranslation = {
 			 */
 			config: string
 		}
+		projects: {
+			/**
+			 * P​r​o​j​e​c​t​s
+			 */
+			title: string
+			/**
+			 * S​E​C​T​O​R​ ​0​2​ ​·​ ​P​R​O​J​E​C​T​S
+			 */
+			eyebrow: string
+			/**
+			 * P​r​o​j​e​c​t​ ​r​e​g​i​s​t​r​y​.​ ​D​e​f​i​n​e​ ​i​n​g​r​e​s​s​ ​l​a​n​e​s​,​ ​v​e​r​i​f​i​c​a​t​i​o​n​ ​g​a​t​e​s​,​ ​a​n​d​ ​w​o​r​k​e​r​ ​s​c​o​p​e​s​.
+			 */
+			description: string
+			/**
+			 * n​e​w​ ​p​r​o​j​e​c​t
+			 */
+			newProject: string
+			/**
+			 * c​a​n​c​e​l
+			 */
+			cancel: string
+			/**
+			 * n​o​ ​p​r​o​j​e​c​t​s​ ​r​e​g​i​s​t​e​r​e​d
+			 */
+			empty: string
+			/**
+			 * C​r​e​a​t​e​ ​y​o​u​r​ ​f​i​r​s​t​ ​p​r​o​j​e​c​t​ ​t​o​ ​s​t​a​r​t​ ​d​i​s​p​a​t​c​h​i​n​g​ ​t​a​s​k​s​.
+			 */
+			emptyHint: string
+			/**
+			 * R​e​g​i​s​t​e​r​ ​p​r​o​j​e​c​t
+			 */
+			createTitle: string
+			/**
+			 * E​d​i​t​ ​p​r​o​j​e​c​t
+			 */
+			editTitle: string
+			/**
+			 * /​/​ ​R​E​G​I​S​T​R​Y
+			 */
+			sectionLabel: string
+			/**
+			 * P​r​o​j​e​c​t​ ​I​D
+			 */
+			formId: string
+			/**
+			 * I​m​m​u​t​a​b​l​e​ ​i​d​e​n​t​i​f​i​e​r​ ​(​l​o​w​e​r​c​a​s​e​,​ ​h​y​p​h​e​n​a​t​e​d​)
+			 */
+			formIdHint: string
+			/**
+			 * V​e​r​i​f​i​c​a​t​i​o​n
+			 */
+			formVerification: string
+			/**
+			 * J​W​K​S​ ​U​R​I
+			 */
+			formJwksUri: string
+			/**
+			 * R​e​q​u​i​r​e​d​ ​f​o​r​ ​w​o​r​k​e​r​ ​a​u​t​h​e​n​t​i​c​a​t​i​o​n
+			 */
+			formJwksHint: string
+			/**
+			 * M​a​x​ ​t​a​s​k​ ​h​o​l​d​ ​t​i​m​e​ ​(​s​e​c​o​n​d​s​)
+			 */
+			formMaxHold: string
+			/**
+			 * A​l​l​o​w​e​d​ ​t​a​s​k​ ​t​y​p​e​s
+			 */
+			formAllowedTypes: string
+			/**
+			 * P​r​e​s​s​ ​E​n​t​e​r​ ​t​o​ ​a​d​d​.​ ​E​m​p​t​y​ ​=​ ​a​l​l​ ​t​y​p​e​s​ ​a​l​l​o​w​e​d​.
+			 */
+			formAllowedTypesHint: string
+			/**
+			 * R​e​c​e​i​p​t​ ​s​e​c​r​e​t
+			 */
+			formReceiptSecret: string
+			/**
+			 * U​s​e​d​ ​t​o​ ​v​e​r​i​f​y​ ​w​o​r​k​e​r​ ​r​e​c​e​i​p​t​s
+			 */
+			formReceiptSecretHint: string
+			/**
+			 * n​o​n​e
+			 */
+			verifyNone: string
+			/**
+			 * r​e​c​e​i​p​t​e​d
+			 */
+			verifyReceipted: string
+			/**
+			 * a​u​d​i​t​e​d
+			 */
+			verifyAudited: string
+			/**
+			 * r​e​g​i​s​t​e​r
+			 */
+			submitCreate: string
+			/**
+			 * s​a​v​e
+			 */
+			submitUpdate: string
+			/**
+			 * s​a​v​i​n​g​…
+			 */
+			submitting: string
+			/**
+			 * i​d
+			 */
+			colId: string
+			/**
+			 * v​e​r​i​f​i​c​a​t​i​o​n
+			 */
+			colVerification: string
+			/**
+			 * j​w​k​s
+			 */
+			colJwks: string
+			/**
+			 * t​y​p​e​s
+			 */
+			colTypes: string
+			/**
+			 * c​r​e​a​t​e​d
+			 */
+			colCreated: string
+			/**
+			 * a​c​t​i​o​n​s
+			 */
+			colActions: string
+			/**
+			 * c​o​n​f​i​g​u​r​e​d
+			 */
+			jwksPresent: string
+			/**
+			 * m​i​s​s​i​n​g
+			 */
+			jwksMissing: string
+			/**
+			 * a​l​l
+			 */
+			typesAll: string
+			/**
+			 * E​d​i​t
+			 */
+			actionEdit: string
+			/**
+			 * D​e​l​e​t​e
+			 */
+			actionDelete: string
+			/**
+			 * C​l​e​a​r​ ​t​a​s​k​s
+			 */
+			actionClear: string
+			/**
+			 * D​e​l​e​t​e​ ​p​r​o​j​e​c​t
+			 */
+			deleteConfirmTitle: string
+			/**
+			 * T​h​i​s​ ​p​e​r​m​a​n​e​n​t​l​y​ ​r​e​m​o​v​e​s​ ​t​h​e​ ​p​r​o​j​e​c​t​.​ ​T​h​i​s​ ​a​c​t​i​o​n​ ​c​a​n​n​o​t​ ​b​e​ ​u​n​d​o​n​e​.
+			 */
+			deleteConfirmDesc: string
+			/**
+			 * P​r​o​j​e​c​t​ ​h​a​s​ ​t​a​s​k​s
+			 */
+			deleteBlockedTitle: string
+			/**
+			 * {​c​o​u​n​t​}​ ​t​a​s​k​{​{​s​}​}​ ​s​t​i​l​l​ ​e​x​i​s​t​ ​f​o​r​ ​t​h​i​s​ ​p​r​o​j​e​c​t​.​ ​C​l​e​a​r​ ​t​h​e​m​ ​f​i​r​s​t​ ​t​o​ ​d​e​l​e​t​e​.
+			 * @param {number} count
+			 */
+			deleteBlockedDesc: RequiredParams<'count'>
+			/**
+			 * C​l​e​a​r​ ​a​l​l​ ​t​a​s​k​s
+			 */
+			clearTasksTitle: string
+			/**
+			 * T​h​i​s​ ​p​e​r​m​a​n​e​n​t​l​y​ ​d​e​l​e​t​e​s​ ​e​v​e​r​y​ ​t​a​s​k​ ​(​i​n​c​l​u​d​i​n​g​ ​r​u​n​n​i​n​g​ ​o​n​e​s​)​ ​f​o​r​ ​t​h​i​s​ ​p​r​o​j​e​c​t​.​ ​T​o​ ​c​o​n​f​i​r​m​,​ ​t​y​p​e​ ​t​h​e​ ​p​r​o​j​e​c​t​ ​i​d​ ​b​e​l​o​w​.
+			 */
+			clearTasksDesc: string
+			/**
+			 * T​y​p​e​ ​p​r​o​j​e​c​t​ ​i​d​ ​t​o​ ​c​o​n​f​i​r​m
+			 */
+			clearTasksLabel: string
+			/**
+			 * C​o​n​f​i​r​m​a​t​i​o​n​ ​m​u​s​t​ ​m​a​t​c​h​ ​t​h​e​ ​p​r​o​j​e​c​t​ ​i​d​ ​e​x​a​c​t​l​y​.
+			 */
+			clearTasksMismatch: string
+			/**
+			 * C​l​e​a​r​ ​a​l​l​ ​t​a​s​k​s
+			 */
+			clearTasksSubmit: string
+			/**
+			 * C​l​e​a​r​i​n​g​…
+			 */
+			clearTasksRunning: string
+			/**
+			 * {​c​o​u​n​t​}​ ​t​a​s​k​{​{​s​}​}​ ​d​e​l​e​t​e​d
+			 * @param {number} count
+			 */
+			clearTasksSuccess: RequiredParams<'count'>
+			/**
+			 * N​o​ ​p​r​o​j​e​c​t​s​ ​y​e​t
+			 */
+			onboardingTitle: string
+			/**
+			 * D​i​s​p​a​t​c​h​ ​n​e​e​d​s​ ​a​t​ ​l​e​a​s​t​ ​o​n​e​ ​p​r​o​j​e​c​t​ ​b​e​f​o​r​e​ ​t​a​s​k​s​ ​a​n​d​ ​w​o​r​k​e​r​s​ ​c​a​n​ ​b​e​ ​r​e​g​i​s​t​e​r​e​d​.
+			 */
+			onboardingDesc: string
+			/**
+			 * O​p​e​n​ ​P​r​o​j​e​c​t​s
+			 */
+			onboardingCta: string
+			/**
+			 * P​r​o​j​e​c​t
+			 */
+			selectorLabel: string
+		}
 		nav: {
 			/**
 			 * O​v​e​r​v​i​e​w
 			 */
 			overview: string
+			/**
+			 * P​r​o​j​e​c​t​s
+			 */
+			projects: string
 			/**
 			 * W​o​r​k​e​r​s
 			 */
@@ -664,11 +884,229 @@ export type TranslationFunctions = {
 			 */
 			config: () => LocalizedString
 		}
+		projects: {
+			/**
+			 * Projects
+			 */
+			title: () => LocalizedString
+			/**
+			 * SECTOR 02 · PROJECTS
+			 */
+			eyebrow: () => LocalizedString
+			/**
+			 * Project registry. Define ingress lanes, verification gates, and worker scopes.
+			 */
+			description: () => LocalizedString
+			/**
+			 * new project
+			 */
+			newProject: () => LocalizedString
+			/**
+			 * cancel
+			 */
+			cancel: () => LocalizedString
+			/**
+			 * no projects registered
+			 */
+			empty: () => LocalizedString
+			/**
+			 * Create your first project to start dispatching tasks.
+			 */
+			emptyHint: () => LocalizedString
+			/**
+			 * Register project
+			 */
+			createTitle: () => LocalizedString
+			/**
+			 * Edit project
+			 */
+			editTitle: () => LocalizedString
+			/**
+			 * // REGISTRY
+			 */
+			sectionLabel: () => LocalizedString
+			/**
+			 * Project ID
+			 */
+			formId: () => LocalizedString
+			/**
+			 * Immutable identifier (lowercase, hyphenated)
+			 */
+			formIdHint: () => LocalizedString
+			/**
+			 * Verification
+			 */
+			formVerification: () => LocalizedString
+			/**
+			 * JWKS URI
+			 */
+			formJwksUri: () => LocalizedString
+			/**
+			 * Required for worker authentication
+			 */
+			formJwksHint: () => LocalizedString
+			/**
+			 * Max task hold time (seconds)
+			 */
+			formMaxHold: () => LocalizedString
+			/**
+			 * Allowed task types
+			 */
+			formAllowedTypes: () => LocalizedString
+			/**
+			 * Press Enter to add. Empty = all types allowed.
+			 */
+			formAllowedTypesHint: () => LocalizedString
+			/**
+			 * Receipt secret
+			 */
+			formReceiptSecret: () => LocalizedString
+			/**
+			 * Used to verify worker receipts
+			 */
+			formReceiptSecretHint: () => LocalizedString
+			/**
+			 * none
+			 */
+			verifyNone: () => LocalizedString
+			/**
+			 * receipted
+			 */
+			verifyReceipted: () => LocalizedString
+			/**
+			 * audited
+			 */
+			verifyAudited: () => LocalizedString
+			/**
+			 * register
+			 */
+			submitCreate: () => LocalizedString
+			/**
+			 * save
+			 */
+			submitUpdate: () => LocalizedString
+			/**
+			 * saving…
+			 */
+			submitting: () => LocalizedString
+			/**
+			 * id
+			 */
+			colId: () => LocalizedString
+			/**
+			 * verification
+			 */
+			colVerification: () => LocalizedString
+			/**
+			 * jwks
+			 */
+			colJwks: () => LocalizedString
+			/**
+			 * types
+			 */
+			colTypes: () => LocalizedString
+			/**
+			 * created
+			 */
+			colCreated: () => LocalizedString
+			/**
+			 * actions
+			 */
+			colActions: () => LocalizedString
+			/**
+			 * configured
+			 */
+			jwksPresent: () => LocalizedString
+			/**
+			 * missing
+			 */
+			jwksMissing: () => LocalizedString
+			/**
+			 * all
+			 */
+			typesAll: () => LocalizedString
+			/**
+			 * Edit
+			 */
+			actionEdit: () => LocalizedString
+			/**
+			 * Delete
+			 */
+			actionDelete: () => LocalizedString
+			/**
+			 * Clear tasks
+			 */
+			actionClear: () => LocalizedString
+			/**
+			 * Delete project
+			 */
+			deleteConfirmTitle: () => LocalizedString
+			/**
+			 * This permanently removes the project. This action cannot be undone.
+			 */
+			deleteConfirmDesc: () => LocalizedString
+			/**
+			 * Project has tasks
+			 */
+			deleteBlockedTitle: () => LocalizedString
+			/**
+			 * {count} task{{s}} still exist for this project. Clear them first to delete.
+			 */
+			deleteBlockedDesc: (arg: { count: number }) => LocalizedString
+			/**
+			 * Clear all tasks
+			 */
+			clearTasksTitle: () => LocalizedString
+			/**
+			 * This permanently deletes every task (including running ones) for this project. To confirm, type the project id below.
+			 */
+			clearTasksDesc: () => LocalizedString
+			/**
+			 * Type project id to confirm
+			 */
+			clearTasksLabel: () => LocalizedString
+			/**
+			 * Confirmation must match the project id exactly.
+			 */
+			clearTasksMismatch: () => LocalizedString
+			/**
+			 * Clear all tasks
+			 */
+			clearTasksSubmit: () => LocalizedString
+			/**
+			 * Clearing…
+			 */
+			clearTasksRunning: () => LocalizedString
+			/**
+			 * {count} task{{s}} deleted
+			 */
+			clearTasksSuccess: (arg: { count: number }) => LocalizedString
+			/**
+			 * No projects yet
+			 */
+			onboardingTitle: () => LocalizedString
+			/**
+			 * Dispatch needs at least one project before tasks and workers can be registered.
+			 */
+			onboardingDesc: () => LocalizedString
+			/**
+			 * Open Projects
+			 */
+			onboardingCta: () => LocalizedString
+			/**
+			 * Project
+			 */
+			selectorLabel: () => LocalizedString
+		}
 		nav: {
 			/**
 			 * Overview
 			 */
 			overview: () => LocalizedString
+			/**
+			 * Projects
+			 */
+			projects: () => LocalizedString
 			/**
 			 * Workers
 			 */

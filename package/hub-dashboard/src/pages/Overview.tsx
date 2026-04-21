@@ -1,10 +1,20 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLL } from '../i18n'
-import { useStats, useWorkers } from '../api/hooks'
+import { useProjects, useStats, useWorkers } from '../api/hooks'
 import { QueueChart } from '@rezics/dispatch-ui'
 import { PageHeader } from '../components/PageHeader'
 import { SectionCard } from '../components/SectionCard'
 import { StatReadout } from '../components/StatReadout'
-import { MoveUpRight, Activity } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@rezics/dispatch-ui/shadcn/select'
+import { Button } from '@rezics/dispatch-ui/shadcn/button'
+import { MoveUpRight, Activity, Plus } from 'lucide-react'
 
 interface Worker {
   id: string
@@ -14,6 +24,13 @@ interface Worker {
   concurrency: number
 }
 
+interface ProjectRow {
+  id: string
+  createdAt: string
+}
+
+const SELECTION_STORAGE_KEY = 'dispatch.overview.project'
+
 function workerHealth(lastSeen: string | Date): 'healthy' | 'stale' | 'offline' {
   const elapsed = (Date.now() - new Date(lastSeen).getTime()) / 1000
   if (elapsed <= 30) return 'healthy'
@@ -21,9 +38,52 @@ function workerHealth(lastSeen: string | Date): 'healthy' | 'stale' | 'offline' 
   return 'offline'
 }
 
+function readPersistedProjectId(): string | null {
+  try {
+    return window.localStorage.getItem(SELECTION_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function persistProjectId(id: string) {
+  try {
+    window.localStorage.setItem(SELECTION_STORAGE_KEY, id)
+  } catch {
+    // localStorage may be unavailable; selection just won't persist.
+  }
+}
+
 export function Overview() {
   const LL = useLL()
-  const stats = useStats('default')
+  const projectsQuery = useProjects()
+  const projectList = useMemo(
+    () => (projectsQuery.data ?? []) as unknown as ProjectRow[],
+    [projectsQuery.data],
+  )
+
+  const [selectedId, setSelectedId] = useState<string | null>(() => readPersistedProjectId())
+
+  useEffect(() => {
+    if (projectList.length === 0) {
+      if (selectedId !== null) setSelectedId(null)
+      return
+    }
+
+    const exists = selectedId && projectList.some((p) => p.id === selectedId)
+    if (!exists) {
+      const next = projectList[0]!.id
+      setSelectedId(next)
+      persistProjectId(next)
+    }
+  }, [projectList, selectedId])
+
+  function handleSelect(id: string) {
+    setSelectedId(id)
+    persistProjectId(id)
+  }
+
+  const stats = useStats(selectedId ?? '')
   const workers = useWorkers()
 
   const statusData = stats.data as
@@ -41,6 +101,8 @@ export function Overview() {
     (statusData?.done ?? 0) +
     (statusData?.failed ?? 0)
 
+  const noProjects = !projectsQuery.isLoading && projectList.length === 0
+
   return (
     <div className="space-y-10">
       <PageHeader
@@ -50,7 +112,10 @@ export function Overview() {
         description="Realtime operator view across all dispatch sectors. Signals refresh every five seconds."
         actions={
           <div className="flex items-center gap-2 border border-border bg-card/60 px-3 py-1.5 font-mono text-[11px] text-muted-foreground">
-            <Activity className="size-3.5 text-signal-phosphor" style={{ color: 'var(--color-signal-phosphor)' }} />
+            <Activity
+              className="size-3.5 text-signal-phosphor"
+              style={{ color: 'var(--color-signal-phosphor)' }}
+            />
             <span>
               <span className="numeric-tabular text-foreground">{total}</span> total transactions
             </span>
@@ -58,110 +123,146 @@ export function Overview() {
         }
       />
 
-      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        <StatReadout
-          label={LL.common.status.pending()}
-          value={statusData?.pending ?? '—'}
-          accent="amber"
-          code="STA.01"
-          pulse={(statusData?.pending ?? 0) > 0}
-          delay={0}
-        />
-        <StatReadout
-          label={LL.common.status.running()}
-          value={statusData?.running ?? '—'}
-          accent="cyan"
-          code="STA.02"
-          pulse={(statusData?.running ?? 0) > 0}
-          delay={60}
-        />
-        <StatReadout
-          label={LL.common.status.done()}
-          value={statusData?.done ?? '—'}
-          accent="phosphor"
-          code="STA.03"
-          delay={120}
-        />
-        <StatReadout
-          label={LL.common.status.failed()}
-          value={statusData?.failed ?? '—'}
-          accent="crimson"
-          code="STA.04"
-          pulse={(statusData?.failed ?? 0) > 0}
-          delay={180}
-        />
-        <StatReadout
-          label={LL.hub.workers.title()}
-          value={workerList.length || '—'}
-          accent="violet"
-          code="UNITS"
-          suffix={
-            <span>
-              <span style={{ color: 'var(--color-health-healthy)' }}>●</span>{' '}
-              {healthy} healthy · {stale + offline} offline
-            </span>
-          }
-          delay={240}
-        />
-      </section>
-
-      <div className="grid gap-6 xl:gap-8 lg:grid-cols-[2fr_1fr]">
-        <SectionCard
-          label="// QUEUE DEPTH"
-          title={LL.hub.overview.queueDepth()}
-          meta="live · 5s"
-        >
-          <div className="p-6">
-            <QueueChart
-              queueData={[]}
-              emptyMessage={LL.common.labels.noData()}
-              labels={{
-                pending: LL.common.status.pending(),
-                running: LL.common.status.running(),
-              }}
-            />
+      {noProjects ? (
+        <SectionCard label="// ONBOARDING" title={LL.hub.projects.onboardingTitle()}>
+          <div className="px-6 py-12 text-center space-y-4">
+            <p className="font-mono text-[11px] text-muted-foreground">
+              {LL.hub.projects.onboardingDesc()}
+            </p>
+            <Button asChild className="gap-1.5 font-mono text-[11px] tracking-wider-caps">
+              <Link to="/projects">
+                <Plus className="size-3.5" />
+                {LL.hub.projects.onboardingCta()}
+              </Link>
+            </Button>
           </div>
         </SectionCard>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-3 border-y border-border/70 py-3 font-mono text-[11px]">
+            <span className="tracking-wider-caps text-muted-foreground">
+              {LL.hub.projects.selectorLabel()}
+            </span>
+            <Select
+              value={selectedId ?? ''}
+              onValueChange={handleSelect}
+              disabled={projectList.length === 0}
+            >
+              <SelectTrigger className="font-mono text-sm">
+                <SelectValue placeholder="—" />
+              </SelectTrigger>
+              <SelectContent>
+                {projectList.map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="font-mono text-sm">
+                    {p.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <SectionCard label="// FLEET STATUS" title={LL.hub.workers.title()}>
-          <ul className="divide-y divide-border/60">
-            {workerList.length === 0 && (
-              <li className="px-6 py-10 text-center font-mono text-[11px] text-muted-foreground">
-                {LL.common.labels.noData()}
-              </li>
-            )}
-            {workerList.slice(0, 6).map((w) => {
-              const h = workerHealth(w.lastSeen)
-              const color =
-                h === 'healthy'
-                  ? 'var(--color-health-healthy)'
-                  : h === 'stale'
-                  ? 'var(--color-health-stale)'
-                  : 'var(--color-health-offline)'
-              return (
-                <li key={w.id} className="flex items-center gap-3 px-6 py-3.5">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
-                  />
-                  <span className="font-mono text-[11.5px] text-foreground/90">
-                    {w.id.slice(0, 10)}
-                  </span>
-                  <span className="ml-auto font-mono text-[10px] uppercase tracking-wider-caps text-muted-foreground">
-                    ×{w.concurrency} · {w.mode}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-          {workerList.length > 6 && (
-            <div className="border-t border-border/70 px-6 py-3.5 font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
-              + {workerList.length - 6} more units
-              <MoveUpRight className="ml-1 inline size-3" />
-            </div>
-          )}
-        </SectionCard>
-      </div>
+          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            <StatReadout
+              label={LL.common.status.pending()}
+              value={statusData?.pending ?? '—'}
+              accent="amber"
+              code="STA.01"
+              pulse={(statusData?.pending ?? 0) > 0}
+              delay={0}
+            />
+            <StatReadout
+              label={LL.common.status.running()}
+              value={statusData?.running ?? '—'}
+              accent="cyan"
+              code="STA.02"
+              pulse={(statusData?.running ?? 0) > 0}
+              delay={60}
+            />
+            <StatReadout
+              label={LL.common.status.done()}
+              value={statusData?.done ?? '—'}
+              accent="phosphor"
+              code="STA.03"
+              delay={120}
+            />
+            <StatReadout
+              label={LL.common.status.failed()}
+              value={statusData?.failed ?? '—'}
+              accent="crimson"
+              code="STA.04"
+              pulse={(statusData?.failed ?? 0) > 0}
+              delay={180}
+            />
+            <StatReadout
+              label={LL.hub.workers.title()}
+              value={workerList.length || '—'}
+              accent="violet"
+              code="UNITS"
+              suffix={
+                <span>
+                  <span style={{ color: 'var(--color-health-healthy)' }}>●</span> {healthy} healthy ·{' '}
+                  {stale + offline} offline
+                </span>
+              }
+              delay={240}
+            />
+          </section>
+
+          <div className="grid gap-6 xl:gap-8 lg:grid-cols-[2fr_1fr]">
+            <SectionCard label="// QUEUE DEPTH" title={LL.hub.overview.queueDepth()} meta="live · 5s">
+              <div className="p-6">
+                <QueueChart
+                  queueData={[]}
+                  emptyMessage={LL.common.labels.noData()}
+                  labels={{
+                    pending: LL.common.status.pending(),
+                    running: LL.common.status.running(),
+                  }}
+                />
+              </div>
+            </SectionCard>
+
+            <SectionCard label="// FLEET STATUS" title={LL.hub.workers.title()}>
+              <ul className="divide-y divide-border/60">
+                {workerList.length === 0 && (
+                  <li className="px-6 py-10 text-center font-mono text-[11px] text-muted-foreground">
+                    {LL.common.labels.noData()}
+                  </li>
+                )}
+                {workerList.slice(0, 6).map((w) => {
+                  const h = workerHealth(w.lastSeen)
+                  const color =
+                    h === 'healthy'
+                      ? 'var(--color-health-healthy)'
+                      : h === 'stale'
+                      ? 'var(--color-health-stale)'
+                      : 'var(--color-health-offline)'
+                  return (
+                    <li key={w.id} className="flex items-center gap-3 px-6 py-3.5">
+                      <span
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
+                      />
+                      <span className="font-mono text-[11.5px] text-foreground/90">
+                        {w.id.slice(0, 10)}
+                      </span>
+                      <span className="ml-auto font-mono text-[10px] uppercase tracking-wider-caps text-muted-foreground">
+                        ×{w.concurrency} · {w.mode}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+              {workerList.length > 6 && (
+                <div className="border-t border-border/70 px-6 py-3.5 font-mono text-[10.5px] tracking-wider-caps text-muted-foreground">
+                  + {workerList.length - 6} more units
+                  <MoveUpRight className="ml-1 inline size-3" />
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        </>
+      )}
     </div>
   )
 }

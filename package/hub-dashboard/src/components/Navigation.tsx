@@ -1,5 +1,15 @@
 import { NavLink } from 'react-router-dom'
-import { Moon, Sun, LogOut, LayoutGrid, Cpu, ListChecks, Plug, UserCircle2 } from 'lucide-react'
+import {
+  Moon,
+  Sun,
+  LogOut,
+  LayoutGrid,
+  Cpu,
+  ListChecks,
+  Plug,
+  Boxes,
+  UserCircle2,
+} from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 import { useAuth } from '../auth/AuthContext'
 import { useLL } from '../i18n'
@@ -21,10 +31,11 @@ export function Navigation() {
 
   const navItems: NavItem[] = [
     { to: '/', label: LL.hub.nav.overview(), code: '01', icon: LayoutGrid },
-    { to: '/workers', label: LL.hub.nav.workers(), code: '02', icon: Cpu },
-    { to: '/tasks', label: LL.hub.nav.tasks(), code: '03', icon: ListChecks },
-    { to: '/plugins', label: LL.hub.nav.plugins(), code: '04', icon: Plug },
-    { to: '/users', label: 'Users', code: '05', icon: UserCircle2 },
+    { to: '/projects', label: LL.hub.nav.projects(), code: '02', icon: Boxes },
+    { to: '/workers', label: LL.hub.nav.workers(), code: '03', icon: Cpu },
+    { to: '/tasks', label: LL.hub.nav.tasks(), code: '04', icon: ListChecks },
+    { to: '/plugins', label: LL.hub.nav.plugins(), code: '05', icon: Plug },
+    { to: '/users', label: 'Users', code: '06', icon: UserCircle2 },
   ]
 
   return (

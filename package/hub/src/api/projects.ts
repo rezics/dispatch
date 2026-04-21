@@ -115,3 +115,64 @@ export const projectsRoutes = (db: PrismaClient) =>
         },
       },
     )
+    .delete(
+      '/:id',
+      async ({ params, set }) => {
+        const project = await db.project.findUnique({ where: { id: params.id } })
+        if (!project) {
+          set.status = 404
+          return { error: 'Project not found' }
+        }
+
+        const taskCount = await db.task.count({ where: { project: params.id } })
+        if (taskCount > 0) {
+          set.status = 409
+          return { error: 'Project has tasks', taskCount }
+        }
+
+        try {
+          await db.project.delete({ where: { id: params.id } })
+          return { id: params.id, deleted: true }
+        } catch {
+          set.status = 404
+          return { error: 'Project not found' }
+        }
+      },
+      {
+        params: t.Object({ id: t.String() }),
+        detail: {
+          summary: 'Delete project',
+          description:
+            'Delete a project. Returns 409 with task count when the project still has tasks.',
+          security: [{ Bearer: [] }],
+        },
+      },
+    )
+    .delete(
+      '/:id/tasks',
+      async ({ params, body, set }) => {
+        const project = await db.project.findUnique({ where: { id: params.id } })
+        if (!project) {
+          set.status = 404
+          return { error: 'Project not found' }
+        }
+
+        if (body.confirm !== params.id) {
+          set.status = 400
+          return { error: 'Confirmation does not match project id' }
+        }
+
+        const result = await db.task.deleteMany({ where: { project: params.id } })
+        return { deleted: result.count }
+      },
+      {
+        params: t.Object({ id: t.String() }),
+        body: t.Object({ confirm: t.String() }),
+        detail: {
+          summary: 'Clear all tasks for a project',
+          description:
+            "Delete every task associated with the project (any status). Body 'confirm' must equal the project id.",
+          security: [{ Bearer: [] }],
+        },
+      },
+    )

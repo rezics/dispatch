@@ -4,6 +4,7 @@ import { ThemeProvider } from './components/ThemeProvider'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { Navigation } from './components/Navigation'
 import { Overview } from './pages/Overview'
+import { Projects } from './pages/Projects'
 import { Workers } from './pages/Workers'
 import { Tasks } from './pages/Tasks'
 import { Plugins } from './pages/Plugins'
@@ -79,6 +80,7 @@ function AppRoutes() {
                 <div className="mx-auto w-full max-w-[1400px] px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-14">
                   <Routes>
                     <Route path="/" element={<Overview />} />
+                    <Route path="/projects" element={<Projects />} />
                     <Route path="/workers" element={<Workers />} />
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/plugins" element={<Plugins />} />
